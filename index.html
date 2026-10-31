@@ -1,0 +1,1575 @@
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="robots" content="noindex,nofollow" />
+    <title>AI環境 点検票</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700;900&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      :root {
+        --blue: #0068b6;
+        --blue-soft: #e6f0f8;
+        --red: #d63b12;
+        --red-soft: #ffede7;
+        --ink: #221714;
+        --ink2: #4a3f3b;
+        --line: #ddd6d2;
+        --bg: #fbf9f7;
+        --card: #ffffff;
+        --green: #1e7a4c;
+        --green-soft: #e7f4ec;
+        --amber: #946100;
+        --amber-soft: #fff4dc;
+      }
+      * {
+        box-sizing: border-box;
+      }
+      html {
+        -webkit-text-size-adjust: 100%;
+      }
+      body {
+        margin: 0;
+        background: var(--bg);
+        color: var(--ink);
+        font-family:
+          "Noto Sans JP", "Hiragino Sans", "Yu Gothic UI", sans-serif;
+        font-size: 18px;
+        line-height: 1.8;
+      }
+      .wrap {
+        max-width: 1000px;
+        margin: 0 auto;
+        padding: 0 20px 80px;
+      }
+      header.hero {
+        background: var(--ink);
+        color: #fff;
+        padding: 44px 0 36px;
+        margin-bottom: 28px;
+      }
+      header.hero .wrap {
+        padding-bottom: 0;
+      }
+      .kicker {
+        font-size: 15px;
+        letter-spacing: 0.14em;
+        color: #ffb59e;
+        font-weight: 700;
+      }
+      h1 {
+        font-size: 36px;
+        line-height: 1.4;
+        margin: 10px 0 12px;
+        font-weight: 900;
+        word-break: keep-all;
+        overflow-wrap: anywhere;
+      }
+      .hero p {
+        margin: 0;
+        color: #ede6e2;
+      }
+      h2 {
+        font-size: 26px;
+        line-height: 1.45;
+        margin: 44px 0 12px;
+        padding-left: 14px;
+        border-left: 8px solid var(--blue);
+      }
+      h2 .num {
+        color: var(--blue);
+        margin-right: 10px;
+      }
+      h2 .cnt {
+        font-size: 16px;
+        color: var(--ink2);
+        font-weight: 500;
+        margin-left: 10px;
+      }
+      h3 {
+        font-size: 21px;
+        line-height: 1.5;
+        margin: 8px 0 6px;
+      }
+      .card {
+        background: var(--card);
+        border: 1px solid var(--line);
+        border-radius: 12px;
+        padding: 22px 26px;
+        margin: 16px 0;
+      }
+      .meta {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 14px;
+      }
+      .meta label {
+        display: block;
+        font-weight: 700;
+        font-size: 17px;
+      }
+      input[type="text"],
+      input[type="date"],
+      textarea {
+        width: 100%;
+        font: inherit;
+        font-size: 17px;
+        padding: 10px 12px;
+        border: 1px solid #bdb3ae;
+        border-radius: 8px;
+        background: #fff;
+        color: var(--ink);
+      }
+      textarea {
+        resize: vertical;
+        line-height: 1.6;
+      }
+      .steps {
+        counter-reset: s;
+        list-style: none;
+        padding: 0;
+        margin: 0;
+      }
+      .steps > li {
+        counter-increment: s;
+        position: relative;
+        padding: 0 0 18px 52px;
+      }
+      .steps > li::before {
+        content: counter(s);
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 36px;
+        height: 36px;
+        border-radius: 50%;
+        background: var(--blue);
+        color: #fff;
+        font-weight: 900;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+      .steps b {
+        font-size: 19px;
+      }
+      code {
+        font-family: Consolas, "Courier New", monospace;
+        background: #f3eeeb;
+        border-radius: 4px;
+        padding: 1px 6px;
+        font-size: 16px;
+      }
+      .btn {
+        font: inherit;
+        font-size: 17px;
+        font-weight: 700;
+        border-radius: 8px;
+        padding: 10px 18px;
+        border: 2px solid var(--blue);
+        background: var(--blue);
+        color: #fff;
+        cursor: pointer;
+      }
+      .btn.sub {
+        background: #fff;
+        color: var(--blue);
+      }
+      .btn.warn {
+        background: #fff;
+        color: var(--red);
+        border-color: var(--red);
+      }
+      .btns {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        margin: 12px 0 0;
+      }
+      #msg {
+        min-height: 1.8em;
+        font-weight: 700;
+        color: var(--green);
+        margin-top: 10px;
+      }
+      #msg.err {
+        color: var(--red);
+      }
+      details.box {
+        background: #fff;
+        border: 1px solid var(--line);
+        border-radius: 12px;
+        padding: 14px 20px;
+        margin: 12px 0;
+      }
+      details.box > summary {
+        cursor: pointer;
+        font-weight: 700;
+        font-size: 19px;
+      }
+      .safe {
+        background: var(--amber-soft);
+        border: 1px solid #e8c77a;
+        border-radius: 10px;
+        padding: 12px 16px;
+        margin: 12px 0;
+        font-size: 17px;
+      }
+      /* summary */
+      .sum {
+        display: grid;
+        grid-template-columns: 1.2fr 2fr;
+        gap: 18px;
+        align-items: center;
+      }
+      .verdict {
+        border-radius: 12px;
+        padding: 18px 20px;
+        text-align: center;
+      }
+      .verdict .v {
+        font-size: 28px;
+        font-weight: 900;
+        line-height: 1.35;
+      }
+      .verdict small {
+        display: block;
+        font-size: 16px;
+        font-weight: 700;
+        margin-top: 4px;
+      }
+      .v-red {
+        background: var(--red-soft);
+        color: var(--red);
+        border: 2px solid var(--red);
+      }
+      .v-yellow {
+        background: var(--amber-soft);
+        color: var(--amber);
+        border: 2px solid #e0b24e;
+      }
+      .v-green {
+        background: var(--green-soft);
+        color: var(--green);
+        border: 2px solid var(--green);
+      }
+      .v-unset {
+        background: #f1eeec;
+        color: var(--ink2);
+        border: 2px solid #bdb3ae;
+      }
+      .counts {
+        display: grid;
+        grid-template-columns: repeat(5, 1fr);
+        gap: 8px;
+      }
+      .counts div {
+        border-radius: 10px;
+        padding: 10px 6px;
+        text-align: center;
+        font-weight: 700;
+        font-size: 16px;
+        border: 1px solid var(--line);
+        background: #fff;
+      }
+      .counts b {
+        display: block;
+        font-size: 28px;
+        line-height: 1.2;
+      }
+      .counts .cg b {
+        color: var(--green);
+      }
+      .counts .cy b {
+        color: var(--amber);
+      }
+      .counts .cr b {
+        color: var(--red);
+      }
+      .todo {
+        margin: 14px 0 0;
+        padding: 0;
+        list-style: none;
+      }
+      .todo li {
+        padding: 6px 0;
+        border-bottom: 1px dashed var(--line);
+      }
+      .todo a {
+        color: var(--ink);
+        text-decoration: none;
+      }
+      .todo a:hover {
+        text-decoration: underline;
+      }
+      .tag {
+        display: inline-block;
+        font-size: 14px;
+        font-weight: 700;
+        border-radius: 6px;
+        padding: 0 8px;
+        margin-right: 6px;
+        vertical-align: 2px;
+      }
+      .t-red {
+        background: var(--red);
+        color: #fff;
+      }
+      .t-yellow {
+        background: #e0b24e;
+        color: #3a2600;
+      }
+      .t-unset {
+        background: #e4dfdc;
+        color: var(--ink2);
+      }
+      .t-green {
+        background: var(--green);
+        color: #fff;
+      }
+      .t-na {
+        background: #e4dfdc;
+        color: var(--ink2);
+      }
+      /* items */
+      .item {
+        background: #fff;
+        border: 1px solid var(--line);
+        border-left: 8px solid #cfc7c3;
+        border-radius: 12px;
+        padding: 18px 22px;
+        margin: 14px 0;
+      }
+      .item.is-green {
+        border-left-color: var(--green);
+      }
+      .item.is-yellow {
+        border-left-color: #e0b24e;
+      }
+      .item.is-red {
+        border-left-color: var(--red);
+      }
+      .item.is-na {
+        border-left-color: #9e9590;
+      }
+      .ihead {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        align-items: center;
+      }
+      .iid {
+        font-weight: 900;
+        color: var(--blue);
+        font-size: 19px;
+        margin-right: 2px;
+      }
+      .crit {
+        font-size: 14px;
+        font-weight: 700;
+        color: var(--red);
+        border: 1px solid var(--red);
+        border-radius: 6px;
+        padding: 0 8px;
+      }
+      .mode {
+        font-size: 14px;
+        font-weight: 700;
+        border-radius: 6px;
+        padding: 0 8px;
+        background: var(--blue-soft);
+        color: var(--blue);
+      }
+      .mode.m-ask {
+        background: #f1eeec;
+        color: var(--ink2);
+      }
+      .rlabel:empty {
+        display: none;
+      }
+      .why {
+        color: var(--ink2);
+        margin: 0 0 8px;
+      }
+      .item details {
+        margin: 6px 0 10px;
+      }
+      .item details > summary {
+        cursor: pointer;
+        color: var(--blue);
+        font-weight: 700;
+        font-size: 17px;
+      }
+      .how {
+        margin: 8px 0;
+      }
+      .crit-list {
+        list-style: none;
+        padding: 0;
+        margin: 6px 0 0;
+      }
+      .crit-list li {
+        padding: 8px 12px;
+        border-radius: 8px;
+        margin: 6px 0;
+        font-size: 17px;
+      }
+      .crit-list b {
+        display: inline-block;
+        min-width: 2.2em;
+        margin-right: 6px;
+      }
+      .crit-list .cg {
+        background: var(--green-soft);
+      }
+      .crit-list .cg b {
+        color: var(--green);
+      }
+      .crit-list .cy {
+        background: var(--amber-soft);
+      }
+      .crit-list .cy b {
+        color: var(--amber);
+      }
+      .crit-list .cr {
+        background: var(--red-soft);
+      }
+      .crit-list .cr b {
+        color: var(--red);
+      }
+      .rates {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        margin: 10px 0 12px;
+      }
+      .rate {
+        position: relative;
+      }
+      .rate input {
+        position: absolute;
+        opacity: 0;
+        width: 1px;
+        height: 1px;
+      }
+      .rate span {
+        display: inline-block;
+        padding: 6px 16px;
+        border: 2px solid #bdb3ae;
+        border-radius: 99px;
+        font-weight: 700;
+        font-size: 17px;
+        cursor: pointer;
+        background: #fff;
+        color: var(--ink2);
+      }
+      .rate input:focus-visible + span {
+        outline: 3px solid var(--blue);
+        outline-offset: 2px;
+      }
+      .r-green input:checked + span {
+        background: var(--green);
+        border-color: var(--green);
+        color: #fff;
+      }
+      .r-yellow input:checked + span {
+        background: #e0b24e;
+        border-color: #e0b24e;
+        color: #3a2600;
+      }
+      .r-red input:checked + span {
+        background: var(--red);
+        border-color: var(--red);
+        color: #fff;
+      }
+      .r-na input:checked + span,
+      .r-unset input:checked + span {
+        background: #6e6460;
+        border-color: #6e6460;
+        color: #fff;
+      }
+      .fl {
+        display: block;
+        font-weight: 700;
+        font-size: 17px;
+        margin: 8px 0;
+      }
+      .fl textarea {
+        margin-top: 4px;
+        font-weight: 400;
+      }
+      .pv {
+        display: none;
+      }
+      footer {
+        margin-top: 48px;
+        font-size: 16px;
+        color: var(--ink2);
+        border-top: 1px solid var(--line);
+        padding-top: 16px;
+      }
+      @media (max-width: 720px) {
+        body {
+          font-size: 17px;
+        }
+        h1 {
+          font-size: 28px;
+        }
+        h2 {
+          font-size: 23px;
+        }
+        .meta,
+        .sum {
+          grid-template-columns: 1fr;
+        }
+        .counts {
+          grid-template-columns: repeat(3, 1fr);
+        }
+        .card,
+        .item {
+          padding: 18px 16px;
+        }
+      }
+      @media print {
+        body {
+          background: #fff;
+          font-size: 12pt;
+        }
+        header.hero {
+          background: #fff;
+          color: #000;
+          padding: 0;
+          margin-bottom: 12pt;
+        }
+        .hero p,
+        .kicker {
+          color: #000;
+        }
+        .noprint,
+        details,
+        .btns,
+        #msg {
+          display: none !important;
+        }
+        .pv {
+          display: block;
+        }
+        .item {
+          break-inside: avoid;
+          padding: 8pt 12pt;
+          margin: 6pt 0;
+        }
+        .card {
+          break-inside: avoid;
+        }
+        h2 {
+          margin-top: 18pt;
+          break-after: avoid;
+        }
+        .item {
+          break-before: auto;
+        }
+        .counts div {
+          font-size: 11pt;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <header class="hero">
+      <div class="wrap">
+        <div class="kicker">
+          AI車検（仮称）｜ パイロット用 ｜ 第1版 2026-10-31
+        </div>
+        <h1>AI環境 点検票</h1>
+        <p>
+          Claude Code や Codex
+          を自分で使う経営者のAI環境を、7分野・30項目で点検します。点検は読み取り専用で行い、設定の変更はお客様ご自身が行います。
+        </p>
+      </div>
+    </header>
+
+    <main class="wrap">
+      <section class="card">
+        <div class="meta">
+          <label
+            >お客様名<input type="text" id="m-client" autocomplete="off"
+          /></label>
+          <label>点検日<input type="date" id="m-date" /></label>
+          <label
+            >点検者<input type="text" id="m-inspector" autocomplete="off"
+          /></label>
+        </div>
+      </section>
+
+      <section class="noprint">
+        <h2><span class="num">0</span>使い方</h2>
+        <ol class="steps">
+          <li>
+            <b>診断用の指示文をお客様に渡す</b
+            ><br />下の「診断用の指示文」をコピーして渡します。お客様は、普段使っている作業フォルダで次のどちらかを起動し、指示文を貼り付けます。<br />
+            ・Claude Code：<code>claude --permission-mode plan</code>（plan
+            モードはファイルを変更しません）<br />
+            ・Codex：<code>codex --sandbox read-only</code
+            >（読み取り専用で動きます）<br />
+            コマンドの実行確認が出たら、一覧の表示や読み取りだけであることを確かめてから許可してもらいます。
+          </li>
+          <li>
+            <b>出てきた JSON を受け取り、取り込む</b
+            ><br />お客様には、秘密情報の値が含まれていないことを確かめてから送ってもらいます。受け取った
+            JSON を「結果を取り込む」に貼ると、判定と確認した事実が入ります。
+          </li>
+          <li>
+            <b>聞き取りで埋め、判定を確かめる</b
+            ><br />「聞き取り」の項目と「要聞き取り」の印がついた項目は、30分のオンライン面談で本人に聞いて埋めます。AIの判定は提案なので、点検者が最終判定を付けます。
+          </li>
+          <li>
+            <b>結果を書き出して渡す</b
+            ><br />「印刷・PDF」でお客様に渡す点検結果になります。チャット用の文面と、保管用の
+            JSON も書き出せます。
+          </li>
+        </ol>
+
+        <details class="box">
+          <summary>診断用の指示文（お客様に渡すもの）</summary>
+          <div class="safe">
+            この指示文は、AIに「読み取りだけ」「秘密情報の値は出さない」を守らせる内容です。点検者が内容を書き換えるときも、この2つは消さないでください。
+          </div>
+          <textarea id="prompt" rows="14" readonly></textarea>
+          <div class="btns">
+            <button class="btn" type="button" id="b-prompt">
+              指示文をコピー
+            </button>
+          </div>
+        </details>
+
+        <details class="box" id="imp-box">
+          <summary>結果を取り込む（お客様から届いた JSON を貼る）</summary>
+          <textarea
+            id="imp"
+            rows="7"
+            placeholder='[{"id":"A1","rating":"green","evidence":"…","fix":""}, …]'
+          ></textarea>
+          <div class="btns">
+            <button class="btn" type="button" id="b-imp">取り込む</button>
+          </div>
+        </details>
+        <div id="msg" role="status" aria-live="polite"></div>
+      </section>
+
+      <section>
+        <h2><span class="num">★</span>点検結果のまとめ</h2>
+        <div class="card">
+          <div class="sum">
+            <div class="verdict v-unset" id="verdict">
+              <div class="v">点検中</div>
+              <small></small>
+            </div>
+            <div class="counts" id="counts"></div>
+          </div>
+          <ul class="todo" id="todo"></ul>
+          <div class="btns noprint">
+            <button class="btn" type="button" id="b-text">
+              チャット用の文面をコピー
+            </button>
+            <button class="btn sub" type="button" id="b-json">
+              JSON をコピー
+            </button>
+            <button class="btn sub" type="button" id="b-dl">JSON を保存</button>
+            <button class="btn sub" type="button" id="b-print">
+              印刷・PDF
+            </button>
+            <button class="btn warn" type="button" id="b-clear">
+              すべて消去
+            </button>
+          </div>
+          <p
+            class="noprint"
+            style="font-size: 16px; color: var(--ink2); margin: 10px 0 0"
+          >
+            入力内容は、このブラウザの中にだけ保存されます。お客様ごとに「JSON
+            を保存」で控えを残し、次のお客様の前に「すべて消去」してください。
+          </p>
+        </div>
+      </section>
+
+      <div id="items"></div>
+
+      <footer>
+        点検は助言であり、事故が起きないことを保証するものではありません。点検は読み取り専用で行い、設定の変更はお客様ご自身、または承認をいただいたうえで同席して行います。APIキーやパスワードなど秘密情報の値はお預かりしません。
+      </footer>
+    </main>
+
+    <script>
+      const CATS = [
+        ["A", "権限と実行範囲"],
+        ["B", "秘密情報"],
+        ["C", "バックアップと復旧"],
+        ["D", "自動処理の健全性"],
+        ["E", "費用"],
+        ["F", "ツールとモデルの更新"],
+        ["G", "人の確認と成果"],
+      ];
+      const MODE = {
+        auto: "自動確認",
+        ask: "聞き取り",
+        both: "自動確認＋聞き取り",
+      };
+      const RATES = [
+        ["green", "緑"],
+        ["yellow", "黄"],
+        ["red", "赤"],
+        ["na", "該当なし"],
+        ["", "未確認"],
+      ];
+      const RLABEL = {
+        green: "緑",
+        yellow: "黄",
+        red: "赤",
+        na: "該当なし",
+        "": "未確認",
+      };
+      const ITEMS = [
+        {
+          id: "A1",
+          crit: 1,
+          mode: "auto",
+          title: "承認なしで何でも実行できるモードを、普段使いしていない",
+          why: "確認なしで全操作を許すと、削除や送信の誤りがそのまま実行されます。報道された削除事故の多くがこの状態でした。",
+          how: "Claude Code は ~/.claude/settings.json の permissions.defaultMode と、起動時に --dangerously-skip-permissions を付けていないか。Codex は ~/.codex/config.toml の sandbox_mode と approval_policy、起動時の --dangerously-bypass-approvals-and-sandbox。",
+          g: "既定が確認ありのモード（manual・plan・acceptEdits など）。自動判定モード（auto）は、削除と送信の禁止設定（A3・A5）と組み合わせて使っている",
+          y: "自動判定モードや広い自動許可を使っているが、削除と送信の禁止設定が足りない",
+          r: "bypassPermissions、--dangerously-skip-permissions、Codex の danger-full-access と承認なし（never）の組み合わせ、--dangerously-bypass-approvals-and-sandbox のいずれかを日常的に使っている",
+          fix: "既定を確認ありのモードに戻す。全許可は、使い捨てのフォルダや隔離した環境で作業するときだけにする",
+        },
+        {
+          id: "A2",
+          crit: 1,
+          mode: "auto",
+          title: "AIが触れる範囲を、作業フォルダに限っている",
+          why: "ホームフォルダやドライブ全体を作業場所にすると、一度の誤操作で無関係なファイルまで消えます。",
+          how: "普段どのフォルダで起動しているか（ホームフォルダ・デスクトップ・ドライブ直下ではないか）。Claude Code の permissions.additionalDirectories と permissions.blockReadsOutsideWorkingDirectories。Codex の sandbox_mode と書き込みを許したフォルダ（writable_roots）。",
+          g: "案件ごとのフォルダで起動し、追加で許可したフォルダは必要なものだけ",
+          y: "追加の許可フォルダが多い、または上の階層のフォルダから起動することがある",
+          r: "ホームフォルダ・デスクトップ全体・ドライブ直下で起動して作業している",
+          fix: "案件フォルダで起動する習慣にし、追加の許可フォルダを必要最小限にする",
+        },
+        {
+          id: "A3",
+          crit: 1,
+          mode: "auto",
+          title: "削除・強制上書きの操作を止める設定がある",
+          why: "「全部消して作り直す」「履歴を強制的に書き換える」操作を、AIが良かれと思って選ぶことがあります。",
+          how: "Claude Code の permissions.deny と permissions.ask に、rm -rf・git push --force・git reset --hard・データベースの削除などが入っているか。危険なコマンドを止めるフック（PreToolUse）の有無。Codex は承認ポリシーとサンドボックスの設定。",
+          g: "削除・強制上書き・履歴の書き換えが、禁止または毎回確認になっている",
+          y: "一部だけ対策している",
+          r: "対策がない",
+          fix: "deny または ask に削除・強制系の操作を追加する。必要ならフックで止める",
+        },
+        {
+          id: "A4",
+          crit: 0,
+          mode: "auto",
+          title: "自動で許可している操作が広すぎない",
+          why: "「毎回聞かれるのが面倒」で許可を足し続けると、何でも通る状態になります。",
+          how: "Claude Code の permissions.allow（Bash(*) のような全許可、意味の分からない許可）と、.claude/settings.local.json に溜まった「今後は聞かない」の許可。Codex の信頼済みプロジェクト（projects の trust_level）。",
+          g: "必要なコマンドだけを個別に許可していて、全部説明できる",
+          y: "広い許可（ワイルドカード）が数件ある",
+          r: "全コマンドを許可している、または中身を把握していない",
+          fix: "許可の一覧を棚卸しし、使っていないもの・広すぎるものを外す",
+        },
+        {
+          id: "A5",
+          crit: 1,
+          mode: "both",
+          title: "社外に出る操作には、人の確認が入る",
+          why: "誤送信・誤公開・誤発注は取り消せません。国のAI事業者ガイドライン（第1.2版）も、社外への働きかけの前に人が確認する工程を求めています。",
+          how: "メール送信・チャット投稿・SNS投稿・Web公開・決済を行う連携（MCP・スクリプト・自動処理）が、確認なしで動く設定になっていないか。本人に「AIが確認なしで送ったり公開したりする場面があるか」を聞く。",
+          g: "送信・公開・決済は下書きで止まるか、毎回人が確認している",
+          y: "一部の送信（社内向けなど）が自動",
+          r: "社外への送信・公開・決済が、確認なしで実行できる",
+          fix: "送信系の操作を ask に入れる、または下書き作成までに限る",
+        },
+        {
+          id: "A6",
+          crit: 0,
+          mode: "auto",
+          title: "つながっている外部サービス（MCP・プラグイン）を把握している",
+          why: "使っていない接続や出所の分からない接続は、情報の出口にも入口にもなります。",
+          how: "Claude Code の .mcp.json と ~/.claude.json の mcpServers（名前だけ。値は表示しない）、有効なプラグイン。Codex の config.toml の mcp_servers と plugins。",
+          g: "すべての接続の用途を説明でき、使っていないものがない。書き込みできる接続を把握している",
+          y: "用途の分からない接続・使っていない接続が数件ある",
+          r: "何がつながっているか把握していない、または出所の分からない接続がある",
+          fix: "接続の一覧を作り、使っていないものを外す。出所の分からないものは止めて確認する",
+        },
+        {
+          id: "B1",
+          crit: 1,
+          mode: "auto",
+          title: "APIキーやパスワードを、平文であちこちに置いていない",
+          why: "指示書やスクリプトに書いたキーは、AIが読み、共有や公開のときに一緒に外へ出ていきます。",
+          how: "作業フォルダ・指示書（CLAUDE.md・AGENTS.md）・スクリプト・設定ファイルに、キーやパスワードが直書きされていないか（値は表示せず、場所だけを報告）。",
+          g: "保管場所が1か所に決まっていて、指示書やスクリプトに直書きがない",
+          y: "保管場所が複数に分かれている",
+          r: "指示書・スクリプト・共有フォルダに直書きがある",
+          fix: "保管場所を1か所にまとめ、直書きを消す。外に出た可能性のあるキーは再発行する",
+        },
+        {
+          id: "B2",
+          crit: 1,
+          mode: "auto",
+          title: "秘密情報のファイルを、AIが読めないようにしている",
+          why: "AIは作業中に周りのファイルを読みます。読まれたキーは、会話の記録にも残ります。",
+          how: "Claude Code の permissions.deny に、.env・鍵ファイル（*.pem・*.key・id_rsa など）の読み取り禁止（Read(./.env) など）があるか。Codex では、秘密情報を作業フォルダの外に置いているか。",
+          g: "秘密情報ファイルの読み取りが禁止されている、または作業フォルダの外にある",
+          y: "一部のファイルだけ禁止",
+          r: "禁止設定がなく、秘密情報ファイルが作業フォルダの中にある",
+          fix: "deny に Read(./.env) や鍵ファイルを追加し、秘密情報を作業フォルダの外へ移す",
+        },
+        {
+          id: "B3",
+          crit: 0,
+          mode: "auto",
+          title: "秘密情報を Git の管理対象から外している",
+          why: "一度コミットしたキーは、ファイルを消しても履歴に残ります。",
+          how: ".gitignore に .env や鍵ファイルが入っているか。Git の履歴に、それらのファイル名が登場しないか（ファイル名だけで検索し、中身は表示しない）。Git を使っていなければ「該当なし」。",
+          g: "除外されていて、履歴にも残っていない",
+          y: "除外はしているが、履歴を確かめていない",
+          r: "除外していない、または履歴にキーのファイルが残っている",
+          fix: ".gitignore に追加する。履歴に残ったキーは再発行する",
+        },
+        {
+          id: "B4",
+          crit: 0,
+          mode: "both",
+          title: "顧客データや個人情報の置き場所を、AIの作業場所と分けている",
+          why: "作業フォルダに名簿を置くと、AIが別の作業のついでに読み、出力に混ぜることがあります。",
+          how: "作業フォルダに、顧客名簿や個人情報らしいファイルがないか（ファイル名で判断し、中身は開かない）。本人に、AIへ顧客情報を渡すときの方法を聞く。",
+          g: "分けて保管し、AIに渡すときは必要な部分だけ、または匿名にしている",
+          y: "一部が混ざっている",
+          r: "顧客名簿や個人情報が、作業フォルダにそのまま置かれている",
+          fix: "個人情報は別のフォルダに移し、AIには匿名にしたもの・抜粋したものを渡す",
+        },
+        {
+          id: "B5",
+          crit: 0,
+          mode: "ask",
+          title:
+            "AIサービスのデータの扱い（学習への利用・保存期間）を確認している",
+          why: "プランや設定によっては、入力した内容がサービスの改善に使われることがあります。",
+          how: "使っているAIサービスごとに、法人向けプランか、学習への利用をオフにしているかを本人に聞く。",
+          g: "すべてのサービスで確認済み（法人向けプラン、または学習への利用がオフ）",
+          y: "一部のサービスが未確認",
+          r: "誰も確認していない",
+          fix: "各サービスの設定画面を確認し、結果を記録する",
+        },
+        {
+          id: "B6",
+          crit: 0,
+          mode: "ask",
+          title: "公開・共有の前に、社内情報が混じっていないか確かめている",
+          why: "AIは手元の資料から数字や社名を引いてきます。社外に出す資料に、価格・取引先名・個人名が紛れ込むことがあります。",
+          how: "社外向けの資料・記事・公開ページを出す前の確認手順を、本人に聞く。",
+          g: "公開前に確かめる手順がある（社名・価格・個人名・社内のURL）",
+          y: "担当者が目で見るだけ",
+          r: "AIの出力をそのまま公開・共有している",
+          fix: "公開前に見る項目を、短いチェックリストにする",
+        },
+        {
+          id: "C1",
+          crit: 1,
+          mode: "ask",
+          title: "AIが触るデータに、バックアップがある",
+          why: "AIの誤操作でファイルが消えたとき、戻せるかどうかはバックアップだけで決まります。",
+          how: "AIが読み書きするフォルダ・データベース・クラウドのファイルについて、バックアップの有無と頻度を本人に聞く。",
+          g: "重要なデータは自動でバックアップされている",
+          y: "手動、または一部だけ",
+          r: "バックアップがない",
+          fix: "自動バックアップを設定する（クラウドの版の履歴機能も含む）",
+        },
+        {
+          id: "C2",
+          crit: 1,
+          mode: "ask",
+          title: "バックアップを、元のデータとは別の場所に置いている",
+          why: "報道された事故で被害の大きさを分けたのは、バックアップが元のデータと別の場所にあったかどうかでした。",
+          how: "バックアップの保存先が、同じPC・同じフォルダ・同じアカウントになっていないかを聞く。",
+          g: "別の場所（別のサービス・別のアカウント・外付けの記憶装置など）にある",
+          y: "同じクラウドの別フォルダにある",
+          r: "同じPCの同じ場所にある、またはバックアップがない",
+          fix: "保存先を、元のデータと別の場所に移す",
+        },
+        {
+          id: "C3",
+          crit: 0,
+          mode: "ask",
+          title: "バックアップから戻す手順を、試したことがある",
+          why: "戻せるはずのバックアップが、いざというときに戻せないことは珍しくありません。",
+          how: "直近1年以内に、実際にファイルやデータを1つ戻してみたかを聞く。",
+          g: "試したことがあり、手順を書き残している",
+          y: "手順はあるが、試していない",
+          r: "戻し方が分からない",
+          fix: "重要でないファイルで一度戻してみて、手順を残す",
+        },
+        {
+          id: "C4",
+          crit: 0,
+          mode: "both",
+          title: "作業をバージョン管理し、AIの変更を差分で確かめている",
+          why: "差分が見えれば、AIが何を変えたかを確かめ、元に戻せます。",
+          how: "主な作業フォルダが Git などで管理されているか（git status・git log が使えるか）。本人に、AIの変更を確かめてから確定しているかを聞く。",
+          g: "管理していて、変更の前後を確かめている",
+          y: "管理しているが、確かめるのは不定期",
+          r: "管理していない",
+          fix: "主な作業フォルダを Git で管理し、確定の前に差分を見る",
+        },
+        {
+          id: "C5",
+          crit: 0,
+          mode: "both",
+          title: "AI環境そのもの（設定・指示書・スキル）を、別のPCで再現できる",
+          why: "PCの故障や買い替えで、育てた設定や手順書が消えると、作り直しに何週間もかかります。",
+          how: "設定ファイル・指示書・スキル・自動処理の定義が、PCの外（非公開のリポジトリやクラウド）に保存されているか。",
+          g: "一式がPCの外に保存され、復元の手順もある",
+          y: "一部だけ保存されている",
+          r: "PCの中にしかない",
+          fix: "設定一式を非公開の保存先に置き、復元の手順を1枚にまとめる",
+        },
+        {
+          id: "D1",
+          crit: 0,
+          mode: "both",
+          title: "自動で動いている処理の一覧があり、担当と目的が分かる",
+          why: "誰も覚えていない自動処理が、古い設定のまま動き続けることがあります。",
+          how: "定期実行の一覧（Windows はタスクスケジューラ、Mac は launchd と cron、Linux は cron）と、クラウド側で定期実行しているAIの処理。それぞれの担当と目的を本人に聞く。",
+          g: "一覧があり、すべての担当と目的を言える",
+          y: "一覧はあるが、目的の分からないものがある",
+          r: "何が動いているか把握していない",
+          fix: "一覧を作り、目的の分からないものは止めて確かめる",
+        },
+        {
+          id: "D2",
+          crit: 1,
+          mode: "both",
+          title: "自動処理が失敗したとき、気づける",
+          why: "止まったことに気づかないまま数週間たつのが、自動化で最も多い失敗です。",
+          how: "失敗の通知（チャット・メール）やログがあるか。直近の成否が分かるか。",
+          g: "失敗が通知され、直近の成否を確かめられる",
+          y: "ログはあるが、通知はない",
+          r: "止まっても気づけない",
+          fix: "失敗したときに通知を送る設定を加える。重要な処理は、自動で再開する仕組みも検討する",
+        },
+        {
+          id: "D3",
+          crit: 0,
+          mode: "ask",
+          title: "「成功」の表示を、別の方法で確かめている",
+          why: "ツールが「完了」と表示しても、実際にはファイルができていない・送信されていないことがあります。",
+          how: "送信先・保存先で実物（届いたメール、ファイルの大きさ、公開ページ）を確かめる手順があるかを聞く。",
+          g: "重要な処理は、実物を確かめる手順がある",
+          y: "ときどき確かめている",
+          r: "表示だけを信じている",
+          fix: "重要な処理ごとに「何を見たら完了か」を1行で決めておく",
+        },
+        {
+          id: "D4",
+          crit: 0,
+          mode: "ask",
+          title: "自動処理の止め方が決まっている",
+          why: "暴走や誤送信が起きたとき、止め方を探しているあいだにも被害が広がります。",
+          how: "それぞれの自動処理の止め方を、本人がすぐ言えるかを聞く。",
+          g: "止める手順が書き残されている",
+          y: "一部だけ分かる",
+          r: "止め方が分からない",
+          fix: "自動処理ごとに、止める手順を1行で書いておく",
+        },
+        {
+          id: "E1",
+          crit: 0,
+          mode: "ask",
+          title: "AIの利用料を、ツール別に毎月把握している",
+          why: "定額と従量課金が混ざると、気づかないうちに費用が膨らみます。使っていない有料の席が残ることもあります。",
+          how: "毎月のAI関連の支払いを、ツール別に把握しているか。使っていないアカウントや席がないかを聞く。",
+          g: "ツール別に毎月見ていて、使っていない契約がない",
+          y: "合計だけ見ている、または使っていない契約がある",
+          r: "把握していない",
+          fix: "月1回、ツール別の支払いを一覧にし、使っていない契約を解約する",
+        },
+        {
+          id: "E2",
+          crit: 0,
+          mode: "ask",
+          title: "従量課金に、上限や警告を設定している",
+          why: "自動処理が繰り返し動くと、一晩で想定外の請求になることがあります。",
+          how: "API など従量課金のサービスに、利用の上限や金額の通知を設定しているかを聞く。従量課金を使っていなければ「該当なし」。",
+          g: "上限と通知の両方を設定している",
+          y: "通知だけ設定している",
+          r: "どちらもない",
+          fix: "各サービスの管理画面で、上限と通知を設定する",
+        },
+        {
+          id: "E3",
+          crit: 0,
+          mode: "ask",
+          title: "1つのツールが止まったり値上げしたりしても、代わりがある",
+          why: "AIツールは料金や利用条件が頻繁に変わります。1つに全面的に頼ると、変更のたびに業務が止まります。",
+          how: "主な業務を、別のツールでも回せるかを聞く。",
+          g: "主な業務は2つ以上のツールで回せ、試したこともある",
+          y: "代わりはあるが、試していない",
+          r: "1つのツールに全面的に頼っている",
+          fix: "主な業務を1つ選び、別のツールで一度回してみる",
+        },
+        {
+          id: "F1",
+          crit: 0,
+          mode: "auto",
+          title: "使っているAIツールのバージョンが古すぎない",
+          why: "古いバージョンでは、新しいモデルが使えない、不具合や脆弱性が直っていない、といったことが起きます。",
+          how: "claude --version・codex --version などで入っているバージョンを確かめ、点検者が最新版と比べる。",
+          g: "直近1か月以内のバージョン、または定期的に更新している",
+          y: "数か月更新していない",
+          r: "半年以上更新していない、または更新方法が分からない",
+          fix: "更新の手順を決め、月1回更新する",
+        },
+        {
+          id: "F2",
+          crit: 0,
+          mode: "auto",
+          title: "自動処理の中で、モデル名を直書きしていない",
+          why: "モデルは数か月ごとに入れ替わり、古いモデルは提供が終わります。直書きが散らばると、終了の日に一斉に止まります。",
+          how: "スクリプトや設定の中に、モデル名（claude-…、gpt-… など）が何か所に書かれているか。提供終了が予定されているモデルを使っていないか。",
+          g: "モデルの指定が1か所にまとまっている",
+          y: "直書きが数か所ある",
+          r: "提供が終わった、または終了予定のモデルを使っている",
+          fix: "モデルの指定を、設定ファイルの1か所にまとめる",
+        },
+        {
+          id: "F3",
+          crit: 0,
+          mode: "ask",
+          title: "更新のあと、主な自動処理を1回動かして確かめている",
+          why: "ツールやモデルの更新で、昨日まで動いていた処理が静かに壊れることがあります。",
+          how: "更新のあとに確かめる処理と手順があるかを聞く。",
+          g: "更新後に確かめる処理が決まっていて、毎回動かしている",
+          y: "気づいたときだけ",
+          r: "確かめていない",
+          fix: "更新のあとに必ず動かす処理を3つ決めておく",
+        },
+        {
+          id: "G1",
+          crit: 0,
+          mode: "ask",
+          title: "AIが出した数字や事実を、確かめる工程がある",
+          why: "AIの答えは「ほぼ正しいが、少し違う」ことがあります。数字の誤りは信用に直結します。",
+          how: "社外に出す資料や、判断に使う数字について、出典や元のデータを確かめる手順があるかを聞く。",
+          g: "数字と固有名詞は、元のデータで確かめてから使っている",
+          y: "重要なものだけ確かめている",
+          r: "そのまま使っている",
+          fix: "「数字・社名・日付は元のデータで確かめる」をルールにする",
+        },
+        {
+          id: "G2",
+          crit: 0,
+          mode: "ask",
+          title: "AI活用の成果を測る指標を決め、導入前の数字を残している",
+          why: "成果が数字で見えないと、続ける理由も、次に投資する場所も決められません。",
+          how: "時間・件数・商談数など、成果を測る指標と、導入前の数字があるかを聞く。",
+          g: "指標が決まっていて、導入前と比べている",
+          y: "指標はあるが、導入前の数字がない",
+          r: "測っていない",
+          fix: "指標を1つ決め、今月の数字を記録しておく",
+        },
+        {
+          id: "G3",
+          crit: 0,
+          mode: "both",
+          title: "AIに任せる範囲と禁止事項を、社内のルールにしている",
+          why: "会社が把握していないAIを社員が使う「シャドーAI」は、管理職の半数近くに広がっているという調査もあります。",
+          how: "AIの利用ルール（使ってよいツール、入力してはいけない情報、確認が必要な操作）が文書になっているか。社員がAIを使っているかを聞く。社員がいない、またはAIを使っていなければ「該当なし」。",
+          g: "文書になっていて、社員に共有している",
+          y: "口頭だけ",
+          r: "ルールがない（社員がAIを使っている場合）",
+          fix: "1枚のルールを作って共有する",
+        },
+      ];
+
+      const KEY = "ai-shaken-checklist-v1";
+      let state = { meta: { client: "", date: "", inspector: "" }, items: {} };
+      const $ = (s) => document.querySelector(s);
+      function esc(s) {
+        return String(s == null ? "" : s).replace(
+          /[&<>"']/g,
+          (c) =>
+            ({
+              "&": "&amp;",
+              "<": "&lt;",
+              ">": "&gt;",
+              '"': "&quot;",
+              "'": "&#39;",
+            })[c],
+        );
+      }
+      function load() {
+        try {
+          const s = localStorage.getItem(KEY);
+          if (s) {
+            const o = JSON.parse(s);
+            if (o && o.items && o.meta) state = o;
+          }
+        } catch (e) {}
+      }
+      function save() {
+        try {
+          localStorage.setItem(KEY, JSON.stringify(state));
+        } catch (e) {}
+      }
+      function it(id) {
+        return (
+          state.items[id] ||
+          (state.items[id] = { rating: "", evidence: "", fix: "" })
+        );
+      }
+      function msg(t, err) {
+        const m = $("#msg");
+        m.textContent = t;
+        m.className = err ? "err" : "";
+      }
+
+      function buildPrompt() {
+        const L = [];
+        L.push("# AI環境の点検（読み取り専用）");
+        L.push("");
+        L.push(
+          "あなたは、この会社のAI環境の点検係です。下の「点検項目」を順に調べ、最後に JSON だけを出力してください。",
+        );
+        L.push("");
+        L.push("## 必ず守ること");
+        L.push(
+          "- 読み取りだけを行う。ファイルの作成・変更・削除、設定の変更、インストール、git の commit や push、外部への送信は一切しない",
+        );
+        L.push(
+          "- APIキー・パスワード・トークンなどの値は、絶対に表示しない。存在と場所だけを書き、値は「***」にする",
+        );
+        L.push(
+          "- .env や鍵ファイルの中身は開かない。ファイル名と場所だけを確かめる",
+        );
+        L.push(
+          "- ~/.claude.json は mcpServers の名前だけを見る。ほかの値は出力しない",
+        );
+        L.push(
+          '- 調べられない項目や、本人にしか分からない項目は rating を "ask" にし、本人に聞く質問を evidence に1文で書く',
+        );
+        L.push("");
+        L.push("## 調べてよいもの（存在するものだけ）");
+        L.push(
+          "- Claude Code：~/.claude/settings.json、作業フォルダの .claude/settings.json と .claude/settings.local.json、.mcp.json、~/.claude.json の mcpServers の名前、claude --version",
+        );
+        L.push("- Codex：~/.codex/config.toml、codex --version");
+        L.push(
+          "- 作業フォルダ：ファイル名の一覧、.gitignore、git status、git log（ファイル名での検索だけ）、指示書（CLAUDE.md・AGENTS.md）",
+        );
+        L.push(
+          "- 定期実行の一覧：Windows は schtasks /query /fo LIST（Microsoft 製以外）、Mac は crontab -l と launchctl list、Linux は crontab -l",
+        );
+        L.push("");
+        L.push("## 点検項目（ID／項目／調べ方／判定基準）");
+        for (const x of ITEMS) {
+          L.push("");
+          L.push(
+            `### ${x.id} ${x.title}${x.mode === "ask" ? '（本人への聞き取り項目。rating は "ask"）' : ""}`,
+          );
+          L.push(`- 調べ方：${x.how}`);
+          L.push(`- green：${x.g}`);
+          L.push(`- yellow：${x.y}`);
+          L.push(`- red：${x.r}`);
+        }
+        L.push("");
+        L.push("## 出力形式");
+        L.push(
+          "全30項目を1つずつ含む JSON 配列だけを、```json で始まるコードブロックで出力する。",
+        );
+        L.push(
+          '[{"id":"A1","rating":"green|yellow|red|na|ask","evidence":"確かめた事実を1〜2文（秘密情報の値は含めない）","fix":"yellow か red のとき、直し方を1文"}]',
+        );
+        return L.join("\n");
+      }
+
+      function render() {
+        let h = "";
+        for (const [c, name] of CATS) {
+          const list = ITEMS.filter((x) => x.id[0] === c);
+          h += `<section class="cat"><h2><span class="num">${c}</span>${esc(name)}<span class="cnt">${list.length}項目</span></h2>`;
+          for (const x of list) {
+            h += `<article class="item is-unset" id="item-${x.id}" data-id="${x.id}">
+<div class="ihead"><span class="iid">${x.id}</span>${x.crit ? '<span class="crit">★重要</span>' : ""}<span class="mode m-${x.mode}">${MODE[x.mode]}</span><span class="tag rlabel" data-rl></span></div>
+<h3>${esc(x.title)}</h3>
+<p class="why">${esc(x.why)}</p>
+<details><summary>調べ方と判定基準</summary>
+<p class="how"><b>調べ方：</b>${esc(x.how)}</p>
+<ul class="crit-list"><li class="cg"><b>緑</b>${esc(x.g)}</li><li class="cy"><b>黄</b>${esc(x.y)}</li><li class="cr"><b>赤</b>${esc(x.r)}</li></ul>
+</details>
+<div class="rates noprint" role="radiogroup" aria-label="${x.id}の判定">${RATES.map(([v, l]) => `<label class="rate r-${v || "unset"}"><input type="radio" name="r-${x.id}" value="${v}"><span>${l}</span></label>`).join("")}</div>
+<label class="fl noprint">確かめた事実<textarea data-f="evidence" rows="2"></textarea></label>
+<label class="fl noprint">直し方（黄・赤のとき。空欄なら標準の直し方を使います）<textarea data-f="fix" rows="2" placeholder="${esc(x.fix)}"></textarea></label>
+<div class="pv"></div>
+</article>`;
+          }
+          h += "</section>";
+        }
+        const root = $("#items");
+        root.innerHTML = h;
+        root.addEventListener("change", onEdit);
+        root.addEventListener("input", onEdit);
+      }
+
+      function onEdit(e) {
+        const art = e.target.closest(".item");
+        if (!art) return;
+        const id = art.dataset.id,
+          o = it(id);
+        if (e.target.type === "radio") {
+          o.rating = e.target.value;
+        } else if (e.target.dataset.f) {
+          o[e.target.dataset.f] = e.target.value;
+        } else return;
+        save();
+        decorate(id);
+        summary();
+      }
+
+      function fill(id) {
+        const art = document.getElementById("item-" + id),
+          o = it(id);
+        art.querySelectorAll("input[type=radio]").forEach((r) => {
+          r.checked = r.value === (o.rating || "");
+        });
+        art.querySelector("[data-f=evidence]").value = o.evidence || "";
+        art.querySelector("[data-f=fix]").value = o.fix || "";
+        decorate(id);
+      }
+      function fillAll() {
+        $("#m-client").value = state.meta.client || "";
+        $("#m-date").value = state.meta.date || "";
+        $("#m-inspector").value = state.meta.inspector || "";
+        ITEMS.forEach((x) => fill(x.id));
+        summary();
+      }
+
+      function decorate(id) {
+        const x = ITEMS.find((i) => i.id === id),
+          o = it(id),
+          art = document.getElementById("item-" + id);
+        const r = o.rating || "";
+        art.className = "item is-" + (r || "unset");
+        const rl = art.querySelector("[data-rl]");
+        rl.textContent = r ? RLABEL[r] : "";
+        rl.className = "tag rlabel t-" + (r || "unset");
+        let p = `<p><b>判定：</b>${esc(RLABEL[r])}</p>`;
+        if (o.evidence) p += `<p><b>確かめた事実：</b>${esc(o.evidence)}</p>`;
+        if (r === "red" || r === "yellow")
+          p += `<p><b>直し方：</b>${esc(o.fix || x.fix)}</p>`;
+        art.querySelector(".pv").innerHTML = p;
+      }
+
+      function calc() {
+        const c = { green: 0, yellow: 0, red: 0, na: 0, unset: 0 };
+        const critRed = [];
+        ITEMS.forEach((x) => {
+          const r = it(x.id).rating || "unset";
+          c[r] = (c[r] || 0) + 1;
+          if (r === "red" && x.crit) critRed.push(x.id);
+        });
+        let verdict,
+          cls,
+          note = "";
+        if (critRed.length) {
+          verdict = "至急の整備が必要";
+          cls = "v-red";
+          note = `重要項目に赤が ${critRed.length} 件`;
+        } else if (c.red > 0 || c.yellow >= 6) {
+          verdict = "整備が必要";
+          cls = "v-yellow";
+          note = `赤 ${c.red} 件・黄 ${c.yellow} 件`;
+        } else if (c.unset > 0) {
+          verdict = "点検中";
+          cls = "v-unset";
+        } else {
+          verdict = "良好";
+          cls = "v-green";
+          note = "重要項目に赤なし";
+        }
+        if (c.unset > 0) note += (note ? "／" : "") + `未確認 ${c.unset} 項目`;
+        return { c, critRed, verdict, cls, note };
+      }
+
+      function summary() {
+        const s = calc();
+        const v = $("#verdict");
+        v.className = "verdict " + s.cls;
+        v.innerHTML = `<div class="v">${esc(s.verdict)}</div><small>${esc(s.note)}</small>`;
+        $("#counts").innerHTML = [
+          ["cg", "緑", s.c.green],
+          ["cy", "黄", s.c.yellow],
+          ["cr", "赤", s.c.red],
+          ["cn", "該当なし", s.c.na],
+          ["cu", "未確認", s.c.unset],
+        ]
+          .map(([k, l, n]) => `<div class="${k}"><b>${n}</b>${l}</div>`)
+          .join("");
+        const rows = [];
+        const add = (f, tag, label) =>
+          ITEMS.filter(f).forEach((x) =>
+            rows.push(
+              `<li><span class="tag ${tag}">${label}</span><a href="#item-${x.id}">${x.id}　${esc(x.title)}</a></li>`,
+            ),
+          );
+        add((x) => x.crit && it(x.id).rating === "red", "t-red", "至急");
+        add((x) => !x.crit && it(x.id).rating === "red", "t-red", "赤");
+        add((x) => it(x.id).rating === "yellow", "t-yellow", "黄");
+        $("#todo").innerHTML = rows.join("");
+      }
+
+      function exportObj() {
+        const s = calc();
+        return {
+          tool: "AI環境 点検票 第1版",
+          meta: state.meta,
+          summary: {
+            verdict: s.verdict,
+            green: s.c.green,
+            yellow: s.c.yellow,
+            red: s.c.red,
+            na: s.c.na,
+            unset: s.c.unset,
+            urgent: s.critRed,
+          },
+          results: ITEMS.map((x) => {
+            const o = it(x.id);
+            const r = o.rating || "";
+            return {
+              id: x.id,
+              title: x.title,
+              important: !!x.crit,
+              rating: r || "unset",
+              evidence: o.evidence || "",
+              fix: r === "red" || r === "yellow" ? o.fix || x.fix : o.fix || "",
+            };
+          }),
+        };
+      }
+
+      function exportText() {
+        const s = calc(),
+          m = state.meta,
+          L = [];
+        L.push("【AI環境 点検結果】");
+        L.push(
+          `お客様：${m.client || "（未記入）"}／点検日：${m.date || "（未記入）"}／点検者：${m.inspector || "（未記入）"}`,
+        );
+        L.push(`総合判定：${s.verdict}${s.note ? "（" + s.note + "）" : ""}`);
+        L.push(
+          `緑 ${s.c.green}／黄 ${s.c.yellow}／赤 ${s.c.red}／該当なし ${s.c.na}／未確認 ${s.c.unset}`,
+        );
+        const groups = [
+          [
+            "■ 至急（重要項目の赤）",
+            (x) => x.crit && it(x.id).rating === "red",
+          ],
+          ["■ 整備が必要（赤）", (x) => !x.crit && it(x.id).rating === "red"],
+          ["■ 改善をおすすめ（黄）", (x) => it(x.id).rating === "yellow"],
+          ["■ 未確認", (x) => !it(x.id).rating],
+        ];
+        for (const [h, f] of groups) {
+          const xs = ITEMS.filter(f);
+          if (!xs.length) continue;
+          L.push("");
+          L.push(h);
+          for (const x of xs) {
+            const o = it(x.id);
+            L.push(`・${x.id} ${x.title}`);
+            if (o.evidence) L.push(`　事実：${o.evidence}`);
+            if (o.rating === "red" || o.rating === "yellow")
+              L.push(`　直し方：${o.fix || x.fix}`);
+          }
+        }
+        return L.join("\n");
+      }
+
+      const RMAP = {
+        green: "green",
+        緑: "green",
+        yellow: "yellow",
+        黄: "yellow",
+        red: "red",
+        赤: "red",
+        na: "na",
+        "n/a": "na",
+        該当なし: "na",
+        ask: "",
+        unknown: "",
+        unset: "",
+        未確認: "",
+        "": "",
+      };
+      function extractJson(t) {
+        t = String(t).trim();
+        const fence = t.match(/```(?:json)?\s*([\s\S]*?)```/);
+        if (fence) t = fence[1].trim();
+        try {
+          return JSON.parse(t);
+        } catch (e) {}
+        const a = t.indexOf("["),
+          b = t.lastIndexOf("]");
+        if (a >= 0 && b > a) {
+          try {
+            return JSON.parse(t.slice(a, b + 1));
+          } catch (e) {}
+        }
+        const o = t.indexOf("{"),
+          ob = t.lastIndexOf("}");
+        if (o >= 0 && ob > o) {
+          try {
+            return JSON.parse(t.slice(o, ob + 1));
+          } catch (e) {}
+        }
+        throw new Error(
+          "JSON として読み取れませんでした。届いた文面をそのまま貼ってください。",
+        );
+      }
+      function importText(t) {
+        let data = extractJson(t);
+        if (data && !Array.isArray(data)) {
+          if (data.meta && typeof data.meta === "object")
+            Object.assign(state.meta, data.meta);
+          data = data.results || data.items || [];
+        }
+        if (!Array.isArray(data))
+          throw new Error("項目の一覧が見つかりませんでした。");
+        let n = 0,
+          ask = 0,
+          skip = 0;
+        for (const row of data) {
+          const id = String((row && row.id) || "")
+            .toUpperCase()
+            .trim();
+          if (!ITEMS.some((x) => x.id === id)) {
+            skip++;
+            continue;
+          }
+          const o = it(id);
+          const rv = String(row.rating == null ? "" : row.rating)
+            .toLowerCase()
+            .trim();
+          o.rating = rv in RMAP ? RMAP[rv] : "";
+          let ev = String(row.evidence || "").trim();
+          if (rv === "ask" || rv === "unknown") {
+            ask++;
+            if (ev && ev.indexOf("【要聞き取り】") !== 0)
+              ev = "【要聞き取り】" + ev;
+          }
+          o.evidence = ev;
+          if (row.fix) o.fix = String(row.fix).trim();
+          n++;
+        }
+        save();
+        fillAll();
+        return { n, ask, skip };
+      }
+
+      async function copyText(text, label) {
+        try {
+          await navigator.clipboard.writeText(text);
+          msg(label + "をコピーしました");
+        } catch (e) {
+          const ta = document.createElement("textarea");
+          ta.value = text;
+          ta.style.position = "fixed";
+          ta.style.opacity = "0";
+          document.body.appendChild(ta);
+          ta.select();
+          try {
+            document.execCommand("copy");
+            msg(label + "をコピーしました");
+          } catch (e2) {
+            msg(
+              "コピーできませんでした。手動で選択してコピーしてください",
+              true,
+            );
+          }
+          ta.remove();
+        }
+      }
+
+      function init() {
+        load();
+        render();
+        $("#prompt").value = buildPrompt();
+        [
+          ["#m-client", "client"],
+          ["#m-date", "date"],
+          ["#m-inspector", "inspector"],
+        ].forEach(([sel, k]) => {
+          $(sel).addEventListener("input", (e) => {
+            state.meta[k] = e.target.value;
+            save();
+          });
+        });
+        $("#b-prompt").addEventListener("click", () =>
+          copyText($("#prompt").value, "診断用の指示文"),
+        );
+        $("#b-imp").addEventListener("click", () => {
+          try {
+            const r = importText($("#imp").value);
+            msg(
+              `${r.n} 項目を取り込みました。本人への聞き取りが必要な項目：${r.ask} 件${r.skip ? `（読み取れなかった行：${r.skip} 件）` : ""}`,
+            );
+          } catch (e) {
+            msg(e.message, true);
+          }
+        });
+        $("#b-text").addEventListener("click", () =>
+          copyText(exportText(), "チャット用の文面"),
+        );
+        $("#b-json").addEventListener("click", () =>
+          copyText(JSON.stringify(exportObj(), null, 2), "JSON"),
+        );
+        $("#b-dl").addEventListener("click", () => {
+          const blob = new Blob([JSON.stringify(exportObj(), null, 2)], {
+            type: "application/json",
+          });
+          const a = document.createElement("a");
+          const name = (state.meta.client || "お客様").replace(
+            /[\\/:*?"<>|\s]/g,
+            "_",
+          );
+          a.href = URL.createObjectURL(blob);
+          a.download = `点検結果_${name}_${state.meta.date || "日付なし"}.json`;
+          document.body.appendChild(a);
+          a.click();
+          setTimeout(() => {
+            URL.revokeObjectURL(a.href);
+            a.remove();
+          }, 500);
+          msg("JSON を保存しました");
+        });
+        $("#b-print").addEventListener("click", () => window.print());
+        $("#b-clear").addEventListener("click", () => {
+          if (!confirm("入力した判定と記録をすべて消します。よろしいですか？"))
+            return;
+          state = { meta: { client: "", date: "", inspector: "" }, items: {} };
+          save();
+          fillAll();
+          $("#imp").value = "";
+          msg("すべて消去しました");
+        });
+        fillAll();
+      }
+      init();
+    </script>
+  </body>
+</html>
