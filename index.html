@@ -666,6 +666,58 @@
       .pv {
         display: none;
       }
+      .prov {
+        display: inline-block;
+        font-size: 16px;
+        font-weight: 700;
+        border: 2px solid currentColor;
+        border-radius: 8px;
+        padding: 0 10px;
+        margin-left: 10px;
+        vertical-align: 4px;
+        background: #fff;
+      }
+      .pending {
+        background: var(--amber-soft);
+        border: 1px solid #e8c77a;
+        border-radius: 10px;
+        padding: 12px 16px;
+        margin: 14px 0 0;
+        font-size: 17px;
+      }
+      .pending p {
+        margin: 4px 0;
+      }
+      .pending .pend-h {
+        font-weight: 700;
+        margin-top: 12px;
+      }
+      .rules {
+        margin: 14px 0 0;
+        font-size: 16px;
+        color: var(--ink2);
+      }
+      .rules ul {
+        margin: 4px 0 0;
+        padding-left: 1.4em;
+      }
+      .print-warn {
+        display: none;
+      }
+      #fix-warn {
+        margin: 0 0 12px;
+      }
+      #fix-warn[hidden] {
+        display: none;
+      }
+      .guide {
+        margin: 6px 0 0;
+        padding-left: 1.4em;
+        font-size: 17px;
+      }
+      .guide li {
+        margin: 4px 0;
+      }
       footer {
         margin-top: 48px;
         font-size: 16px;
@@ -761,6 +813,21 @@
         .counts div {
           font-size: 11pt;
         }
+        .print-warn.on {
+          display: block;
+          font-weight: 700;
+          border: 2px solid #000;
+          padding: 4pt 8pt;
+          margin: 8pt 0;
+        }
+        .pending {
+          background: #fff;
+          border: 1px solid #000;
+          break-inside: avoid;
+        }
+        .prov {
+          border-color: #000;
+        }
       }
     </style>
   </head>
@@ -768,7 +835,7 @@
     <header class="hero">
       <div class="wrap">
         <div class="kicker">
-          AI車検（仮称）｜ パイロット用 ｜ 第1.1版 2026-11-05
+          AI車検（仮称）｜ パイロット用 ｜ 点検票 第1.2版（2026-11-09）
         </div>
         <h1>AI環境 点検票</h1>
         <p>
@@ -786,7 +853,7 @@
             <b>診断用の指示文をお客様に渡す</b
             ><br />下の「診断用の指示文」をコピーして渡します。お客様は、Claude
             Code のデスクトップアプリか Codex
-            アプリで普段の作業フォルダを開き、新しい会話に指示文を貼り付けて送るだけです。モードを切り替える必要はありません。<br />
+            アプリで普段の作業フォルダを開き、新しい会話に指示文を貼り付けて送るだけです。モードの切り替えは必須にしていません（確実にしたい方向けの手順は、下の補足に残しています）。<br />
             確認の画面が出たら、内容が一覧の表示・検索・読み取りなら許可し、変更・削除・インストール・送信なら許可せずに止めてもらいます（「今後は確認しない」のような選択肢は選ばないでもらいます）。<br />
             <span class="hint"
               >補足：ターミナルで使う方は、Claude Code は
@@ -811,9 +878,25 @@
           <li>
             <b>結果を書き出して渡す</b
             ><br />「印刷・PDF」でお客様に渡す点検結果になります。チャット用の文面と、保管用の
-            JSON も書き出せます。
+            JSON も書き出せます。レポートには、見つかったタスク名やサービス名などが残ります。お客様以外に見せる前に、社名・取引先名などが入っていないか確かめてください。
           </li>
         </ol>
+
+        <div class="card">
+          <b>点検の前に、お客様へ伝えておくこと</b>
+          <ul class="guide">
+            <li>
+              「普段の作業フォルダ」とは、お客様が Claude Code や Codex
+              で仕事をするときに、いつも開くフォルダのことです（案件ごとのフォルダ）。ホームフォルダ・デスクトップ・ドライブ直下は、作業フォルダとして扱いません。そこで開いて点検すると、一覧と検索をせず、聞き取りになります。
+            </li>
+            <li>
+              作業フォルダの中のファイル名は、AIに渡ります（一覧と検索のため）。中身を検索するのは、スクリプト・設定・指示書だけで、一致したファイル名だけを返す決めです。名簿や資料、鍵のファイルの中身は検索しません。
+            </li>
+            <li>
+              「読み取りだけ」「秘密情報の値は出さない」は、AIへの指示です。仕組みでの保証ではありません。AIが確認なしで動ける状態でも、指示は同じですが、守られることを機械的に確かめてはいません。確認の画面が出るときは、お客様自身が許可するかどうかを選べます。
+            </li>
+          </ul>
+        </div>
 
         <details class="box">
           <summary>診断用の指示文（お客様に渡すもの）</summary>
@@ -893,6 +976,7 @@
         <h2><span class="num">★</span>点検レポート</h2>
         <div class="card">
           <div class="r-meta" id="r-meta"></div>
+          <div class="print-warn" id="print-warn"></div>
           <div class="sum">
             <div class="verdict v-unset" id="verdict">
               <div class="v">点検中</div>
@@ -900,7 +984,28 @@
             </div>
             <div class="counts" id="counts"></div>
           </div>
+          <div id="pending"></div>
+          <div class="rules">
+            <b>総合判定の決め方</b>（上から順に当てはめます）
+            <ul>
+              <li>至急の整備が必要：★重要の項目に、赤が1件以上あるとき</li>
+              <li>
+                整備が必要：上に当てはまらず、赤が1件以上、または黄が6件以上あるとき
+              </li>
+              <li>
+                点検中：上に当てはまらず、判定の入っていない項目（要聞き取り・未確認）が1件以上あるとき
+              </li>
+              <li>
+                良好：上のどれにも当てはまらず、全項目に判定が入っているとき（赤はなく、黄は5件以下）
+              </li>
+              <li>
+                暫定：要聞き取りの項目、または「本人への確認：」が残る項目があるとき、判定に「暫定」を付けます。聞き取りの答えで判定が変わることがあります。
+              </li>
+              <li>「該当なし」は判定が入った項目として数え、赤・黄には数えません。</li>
+            </ul>
+          </div>
           <div class="fixcta noprint">
+            <div class="safe" id="fix-warn" hidden></div>
             <button class="btn big" type="button" id="b-fix">
               点検結果をもとに改修用の指示文を作成
             </button>
@@ -945,6 +1050,9 @@
           </div>
           <div class="inline-msg noprint" id="rmsg"></div>
           <p class="note noprint">
+            レポートには、見つかったタスク名・サービス名・フォルダ名などが残ります。社外に見せる前に、お客様名や取引先名などが入っていないか確かめてください。
+          </p>
+          <p class="note noprint">
             入力内容は、このブラウザの中にだけ保存されます。お客様ごとに「JSON
             を保存」で控えを残し、次のお客様の前に「すべて消去」してください。
           </p>
@@ -954,7 +1062,7 @@
       <div id="items"></div>
 
       <footer>
-        点検は助言であり、事故が起きないことを保証するものではありません。点検は読み取り専用で行い、設定の変更はお客様ご自身、または承認をいただいたうえで同席して行います。APIキーやパスワードなど秘密情報の値はお預かりしません。
+        点検は助言であり、事故が起きないことを保証するものではありません。点検は、AIへの指示として読み取り専用で行います（仕組みでの保証ではありません）。設定の変更はお客様ご自身、または承認をいただいたうえで同席して行います。APIキーやパスワードなど秘密情報の値はお預かりしません。
       </footer>
     </main>
     <div id="toast" role="status" aria-live="polite"></div>
@@ -969,6 +1077,7 @@
         ["F", "ツールとモデルの更新"],
         ["G", "人の確認と成果"],
       ];
+      const PAGE_VER = "第1.2版（2026-11-09）";
       const MODE = {
         auto: "自動確認",
         ask: "聞き取り",
@@ -988,18 +1097,207 @@
         na: "該当なし",
         "": "未確認",
       };
+      // 診断用の指示文：橋本CIOの第3.5版（2026-11-09）の全文を、1行ずつ文字列にしたもの。
+      // 先頭〜「## 点検項目」の手前を PROMPT_HEAD、「## 出力形式」から最後を PROMPT_TAIL とし、点検項目の部分だけ ITEMS から作る。
+      const PROMPT_HEAD = [
+        "# AI環境の点検（読み取り専用）",
+        "",
+        "あなたは、この会社のAI環境の点検係です。最初に本人へ短い案内を表示し、下の「点検項目」を順に調べ、最後に JSON だけを出力してください。",
+        "",
+        "## 必ず守ること",
+        "- 調べ始める前に、次の4行をそのまま本人に表示する。返事は待たずに点検を始める",
+        "  「これから読み取りだけで、AI環境を点検します。ファイルの変更や削除はしません。",
+        "  　確認の画面が出たら、内容が一覧の表示・検索・読み取りなら許可してください（「今後は確認しない」のような選択肢は選ばないでください）。",
+        "  　変更・削除・インストール・送信の確認が出たら、許可せずに止めてください。",
+        "  　確認の画面が出ない設定で動いている場合も、同じく読み取りだけで進めます。」",
+        "- この指示文の「作業フォルダ」は、点検を始めたフォルダのこと",
+        "- 使ってよい操作は、次の4つだけ。これ以外の操作（ほかのAIへの作業の依頼や、つながっている外部サービス（MCP）の呼び出しを含む）は使わない",
+        "  1. ファイル名の一覧と、ファイル名での検索。Claude Code に組み込みの検索機能（Glob）があれば、それを使う。なければ find を使う（Mac・Linux・WSL の既定）",
+        "  2. 中身の検索で、一致したファイル名だけを返すもの（grep -rl 相当）。Claude Code に組み込みの検索機能（Grep）があれば、ファイル名だけを返す形で使う。なければ grep -rl を使う。一致した行は表示しない（F2 だけは、一致した部分だけを出す grep -o 相当を使ってよい）",
+        "  3. .gitignore と指示書（CLAUDE.md・AGENTS.md）を読むこと。Claude Code では組み込みの「ファイルを読む」機能（Read）を使う",
+        "  4. 下の「決まったコマンド」の2つ。結果をファイルに書き出さない",
+        "- ファイルの作成・編集・削除・移動、インストール、ネットワークに出る操作（Web の検索やページの取得を含む）、git の書き込み（commit・push など）、設定の変更は一切しない。確認なしで何でも実行できる状態で動いていても同じ",
+        "- 確認の画面で本人が断った操作と、権限の仕組み（自動判定・サンドボックス・アクセスの拒否）に止められた操作は、別の方法で試し直さず、関係する項目を \"ask\" にして続ける。コマンドが起動しないときや、書式のエラーで動かないときだけ、この指示文にある別の方法を1回だけ試す。それでも読めない項目を \"ask\" にする",
+        "- 本人の確認の手間を減らすため、「決まったコマンド」以外のシェルのコマンドは、Glob・Grep がない環境の検索を除いて使わない。Claude Code に Glob・Grep があるときは、一覧・検索・指示書の読み取りに、シェルのコマンドを使わない。作業フォルダの外を Glob や Read で別に調べない（確認の画面が増えるため）",
+        "- シェルのコマンドを実行する直前と、作業フォルダの外（ホームフォルダの .claude・.codex など）を一覧・読み取りする直前に、何を読むのかを1行で本人に説明する（例：「設定ファイルから、許可の設定だけを取り出します。読み取りだけです」）。確認の画面で、本人が読み取りかどうかを判断できるようにするため",
+        "- 成功した検索やコマンドを繰り返さない。シェルのコマンドは、実行の前に書き間違いがないかを見直す（やり直すたびに本人の確認が増えるため）",
+        "- 自分が確認なしでコマンドの実行やファイルの変更ができる状態で動いていると分かるときは、その事実を A1 の evidence に書く（分からなければ書かない）。ただし、これだけで A1 の判定を決めない",
+        "- この点検では、ファイルの変更を提案して承認を求めない。計画を立てて承認を求めることもしない（承認のあと、変更の作業に進んでしまうため）。計画モードで動いているときも、計画の提示や承認の依頼はせず、JSON を回答として出して止まる。読み取りのコマンドを実行するときの確認は出てかまわない。直し方は fix に書くだけにし、JSON を出したら止まる",
+        "- APIキー・パスワード・トークンなどの値は、絶対に表示しない。存在と場所だけを書き、値は「***」にする",
+        "- 秘密情報らしい値を見てしまったときも、その値を出力・要約・引用しない",
+        "- evidence と fix に、顧客名・取引先名・人名を書かない（本人が使っているサービス名は書いてよい）。タスク名やフォルダ名に入っているときは、その部分を「＊＊」に置き換える",
+        "- .env や鍵ファイルの中身は開かない。ファイル名と場所だけを確かめる",
+        "- 設定ファイル（JSON・TOML）は、ファイル全体を開いて読まない（組み込みの「ファイルを読む」機能（Read）でも開かない）。下の「調べてよいもの」に挙げたキーだけを、コマンドで取り出して読む。「決まったコマンド」でキーだけを取り出せないときは、そのファイルは読まずに関係する項目を \"ask\" にする",
+        "- ~/.claude.json は mcpServers の名前と種類だけを見る。ほかの値は読まず、出力もしない",
+        "- 読んでよいか迷うファイルは、読まずに rating を \"ask\" にする",
+        "- 下の「調べてよいもの」に挙げていないファイル（シェルの履歴・ログなど）は、中身を出力・引用しない。中身を見ないと判定できないときは \"ask\" にする",
+        "- evidence には、この点検の中で実際に調べた結果と本人の答えだけを書く。過去の会話の記憶や要約、事前の知識は、判定にも evidence にも使わない。起動時に読み込まれている指示書の内容も同じで、「調べてよいもの」の範囲で、この点検の中で確かめたことだけを使う。調べていないことは書かず、\"ask\" にする",
+        "- 調べられない項目や、本人にしか分からない項目は rating を \"ask\" にし、本人に聞く質問を evidence に1文で書く（「質問：」のような見出しは付けない）。質問は設定の名前を使わず、本人が答えられる言葉で書く（例：「AIがファイルを消そうとしたとき、確認の画面は出ますか？」）。読み取りに失敗したときは、その事実も書く",
+        "",
+        "## 調べてよいもの（存在するものだけ）",
+        "- Claude Code の設定：~/.claude/settings.json、作業フォルダの .claude/settings.json と .claude/settings.local.json。読むのは次のキーだけ",
+        "  - permissions の defaultMode・deny・ask・additionalDirectories・blockReadsOutsideWorkingDirectories",
+        "  - permissions.allow は、許可ごとのツール名（Bash・WebFetch など）と、カッコの中が * だけか・* を含むかだけを取り出して数える（カッコのない許可も全許可として数える）。カッコの中のコマンドは読まない（トークンが入っていることがあるため）",
+        "  - hooks は、イベント名（PreToolUse など）と matcher だけ。実行するコマンドは読まない",
+        "  - enabledPlugins は、プラグインの名前だけ",
+        "  - env など、ここに挙げていないキーは読まない",
+        "- Claude Code の接続：.mcp.json と ~/.claude.json は、mcpServers の名前と種類（type）だけ。command・args・url・env・headers の値は読まない・引用しない",
+        "- claude --version",
+        "- Codex：~/.codex/config.toml は、sandbox_mode・approval_policy・writable_roots・projects の trust_level・mcp_servers と plugins の名前だけを読む。ほかのキー（command・args・env など）は読まない。A1 以外の項目では、sandbox_mode・approval_policy が書かれていないときは、既定の組み合わせ（Git 管理のフォルダは workspace-write と on-request、それ以外は read-only）として判定する。codex --version",
+        "- 作業フォルダ：ファイル名の一覧、.gitignore、指示書（CLAUDE.md・AGENTS.md）。Git の状態と履歴は「決まったコマンド」の出力だけを使う",
+        "- 指示書は、キーの直書きがあるか・AIのルールがあるかの判定にだけ使う。文面は evidence に引用しない",
+        "- git show・git diff と、差分やコミットの本文の表示は使わない",
+        "- 定期実行の一覧：「決まったコマンド」の出力を使う（Windows は schtasks、Mac は crontab と launchctl、Linux は crontab）",
+        "- Windows の定期実行は、タスク名だけを報告する。Microsoft 製のタスクと、パソコンのメーカー・更新ツールのものと分かるタスクは除き、除いた件数だけを書く",
+        "- Mac と Linux の定期実行は、実行間隔と実行ファイル名だけを報告する。コマンドの引数（トークンや URL が入っていることがある）は表示・引用しない。crontab -l は全文を表示せず、実行間隔と実行ファイル名だけを取り出す（名前=値 の行は表示しない）。launchd の設定ファイル（plist）の中身は開かない",
+        "",
+        "## 決まったコマンド",
+        "- シェルのコマンドは、下の2つを書き換えずにそのまま実行する。1回目は「設定ファイルから、挙げたキーだけを取り出します。読み取りだけです」、2回目は「バージョン・Git の状態・定期実行の一覧を確かめます。読み取りだけです」と、直前に本人へ説明する",
+        "- Windows は PowerShell で実行する。Mac・Linux・WSL は bash で実行する",
+        "- Mac・Linux・WSL で node がないときは、同じキーだけを出す処理を python3 で1回だけ書く。python3 もなければ、関係する項目を \"ask\" にする",
+        "- 出力の allow の ALL は、全コマンドの許可か、カッコのない許可（A4 で使う）。exists は、ファイルやフォルダの有無。ignored は .gitignore の対象か、secret-files-in-history は履歴に残る秘密情報らしいファイルの数",
+        "",
+        "### Windows（1回目）",
+        "```powershell",
+        "$h=$env:USERPROFILE",
+        "function Show-Claude($f){",
+        "  if(-not(Test-Path -LiteralPath $f)){\"[$f] none\";return}",
+        "  try{$j=Get-Content -Raw -Encoding UTF8 -LiteralPath $f|ConvertFrom-Json}catch{\"[$f] unreadable\";return}",
+        "  \"[$f]\"",
+        "  $p=$j.permissions",
+        "  \"defaultMode: $($p.defaultMode)\"",
+        "  \"deny: $(@($p.deny) -join ' | ')\"",
+        "  \"ask: $(@($p.ask) -join ' | ')\"",
+        "  \"additionalDirectories: $(@($p.additionalDirectories) -join ' | ')\"",
+        "  \"blockReadsOutsideWorkingDirectories: $($p.blockReadsOutsideWorkingDirectories)\"",
+        "  @($p.allow)|Where-Object{$_}|ForEach-Object{$t=($_ -split '\\(')[0];$k=if($_ -notmatch '\\(' -or $_ -match '\\(\\*\\)$'){'ALL'}elseif($_ -match '\\*'){'wildcard'}else{'exact'};\"$t $k\"}|Group-Object|ForEach-Object{\"allow: $($_.Name) x$($_.Count)\"}",
+        "  if($j.hooks){$j.hooks.PSObject.Properties|ForEach-Object{$e=$_.Name;@($_.Value)|ForEach-Object{\"hook: $e matcher=$($_.matcher)\"}}}",
+        "  if($j.enabledPlugins){\"plugins: $($j.enabledPlugins.PSObject.Properties.Name -join ', ')\"}",
+        "}",
+        "function Show-Mcp($f){",
+        "  if(-not(Test-Path -LiteralPath $f)){\"[$f] none\";return}",
+        "  \"[$f]\"",
+        "  try{$j=Get-Content -Raw -Encoding UTF8 -LiteralPath $f|ConvertFrom-Json",
+        "    if($j.mcpServers){$j.mcpServers.PSObject.Properties|ForEach-Object{\"mcp: $($_.Name) type=$($_.Value.type)\"}}",
+        "  }catch{",
+        "    if(Get-Command node -ErrorAction SilentlyContinue){node -e \"const j=JSON.parse(require('fs').readFileSync(process.argv[1],'utf8'));for(const k in j.mcpServers||{})console.log('mcp:',k,'type='+(j.mcpServers[k].type||''))\" $f}else{'unreadable'}",
+        "  }",
+        "}",
+        "Show-Claude \"$h\\.claude\\settings.json\"",
+        "Show-Claude '.claude\\settings.json'",
+        "Show-Claude '.claude\\settings.local.json'",
+        "Show-Mcp \"$h\\.claude.json\"",
+        "Show-Mcp '.mcp.json'",
+        "$c=\"$h\\.codex\\config.toml\"",
+        "if(Test-Path -LiteralPath $c){",
+        "  \"[$c]\"",
+        "  (Select-String -LiteralPath $c -Pattern '^\\s*(sandbox_mode|approval_policy|writable_roots)\\s*=').Line",
+        "  (Select-String -LiteralPath $c -Pattern '^\\s*trust_level\\s*=').Line|ForEach-Object{$_.Trim()}|Group-Object|ForEach-Object{\"$($_.Name) x$($_.Count)\"}",
+        "  Select-String -LiteralPath $c -Pattern '^\\[(mcp_servers|plugins)\\.(\"[^\"]+\"|[^\\].]+)'|ForEach-Object{$_.Matches[0].Groups[1].Value+': '+$_.Matches[0].Groups[2].Value}|Sort-Object -Unique",
+        "}else{\"[$c] none\"}",
+        "foreach($x in '.claude\\.git','.claude\\skills','.claude\\CLAUDE.md','.codex\\.git','.codex\\skills','.codex\\AGENTS.md'){\"exists $x : $(Test-Path -LiteralPath \"$h\\$x\")\"}",
+        "```",
+        "",
+        "### Windows（2回目）",
+        "```powershell",
+        "foreach($n in 'claude','codex'){",
+        "  $c=Get-Command $n -ErrorAction SilentlyContinue|Select-Object -First 1",
+        "  if($c){$v=try{& $n --version 2>$null|Select-Object -First 1}catch{''};\"$n version=$v command-updated=$((Get-Item -LiteralPath $c.Source).LastWriteTime.ToString('yyyy-MM-dd'))\"}else{\"$n not-found\"}",
+        "}",
+        "$r=@();$t=git rev-parse --show-toplevel 2>$null;if($t){$r+=(Resolve-Path -LiteralPath $t).Path}",
+        "$r+=Get-ChildItem -Path '.\\*\\.git','.\\*\\*\\.git' -Force -ErrorAction SilentlyContinue|ForEach-Object{Split-Path $_.FullName -Parent}",
+        "$r=@($r|Sort-Object -Unique);\"git repositories: $($r.Count)\";$i=0",
+        "foreach($d in ($r|Select-Object -First 5)){",
+        "  $i++;$s=@(git -C $d --no-optional-locks status --porcelain 2>$null);$ok=$LASTEXITCODE -eq 0",
+        "  if(-not $ok){\"repo$i unreadable\";continue}",
+        "  $ig=foreach($x in '.env','.env.local','a.pem','a.key','id_rsa'){git -C $d check-ignore -q $x 2>$null;\"$x=$($LASTEXITCODE -eq 0)\"}",
+        "  $hit=@(git -C $d log --all --format= --name-only -- '*.env' '*.pem' '*.key' '*id_rsa' 2>$null|Sort-Object -Unique).Count",
+        "  \"repo$i changed=$($s.Count) last-commit=$(git -C $d log -1 --format=%cs 2>$null) ignored: $($ig -join ' ') secret-files-in-history=$hit\"",
+        "}",
+        "try{",
+        "  $a=schtasks /query /fo csv /nh 2>$null",
+        "  if($LASTEXITCODE -ne 0){throw 'x'}",
+        "  $n=@($a|ForEach-Object{($_ -split '\",\"')[0].Trim('\"')}|Where-Object{$_ -like '\\*'}|Sort-Object -Unique)",
+        "  $m=@($n|Where-Object{$_ -match '^\\\\Microsoft\\\\' -or $_ -match 'GoogleUpdate|GoogleSystem|Adobe|OneDrive|MicrosoftEdge|NVIDIA|Intel|Lenovo|Dell|\\bHP|\\bNEC'})",
+        "  \"tasks excluded: $($m.Count)\";$n|Where-Object{$m -notcontains $_}|ForEach-Object{\"task: $_\"}",
+        "}catch{'tasks unreadable'}",
+        "```",
+        "",
+        "### Mac・Linux・WSL（1回目）",
+        "```bash",
+        "node -e '",
+        "const fs=require(\"fs\"),os=require(\"os\"),path=require(\"path\"),h=os.homedir();",
+        "const rd=f=>{try{return JSON.parse(fs.readFileSync(f,\"utf8\"))}catch(e){console.log(\"[\"+f+\"] \"+(fs.existsSync(f)?\"unreadable\":\"none\"));return null}};",
+        "for(const f of [path.join(h,\".claude/settings.json\"),\".claude/settings.json\",\".claude/settings.local.json\"]){const j=rd(f);if(!j)continue;console.log(\"[\"+f+\"]\");const p=j.permissions||{};",
+        "for(const k of [\"defaultMode\",\"deny\",\"ask\",\"additionalDirectories\",\"blockReadsOutsideWorkingDirectories\"])console.log(k+\":\",JSON.stringify(p[k]??\"\"));",
+        "const c={};for(const a of p.allow||[]){const t=a.split(\"(\")[0],m=!a.includes(\"(\")||/\\(\\*\\)$/.test(a)?\"ALL\":a.includes(\"*\")?\"wildcard\":\"exact\";c[t+\" \"+m]=(c[t+\" \"+m]||0)+1}",
+        "for(const k in c)console.log(\"allow:\",k,\"x\"+c[k]);",
+        "for(const e in j.hooks||{})for(const g of j.hooks[e])console.log(\"hook:\",e,\"matcher=\"+(g.matcher||\"\"));",
+        "console.log(\"plugins:\",Object.keys(j.enabledPlugins||{}).join(\", \"))}",
+        "for(const f of [path.join(h,\".claude.json\"),\".mcp.json\"]){const j=rd(f);if(!j)continue;console.log(\"[\"+f+\"]\");for(const k in j.mcpServers||{})console.log(\"mcp:\",k,\"type=\"+(j.mcpServers[k].type||\"\"))}",
+        "'",
+        "c=\"$HOME/.codex/config.toml\"",
+        "if [ -f \"$c\" ]; then",
+        "  echo \"[$c]\"",
+        "  grep -E '^[[:space:]]*(sandbox_mode|approval_policy|writable_roots)[[:space:]]*=' \"$c\"",
+        "  grep -E '^[[:space:]]*trust_level[[:space:]]*=' \"$c\" | sed 's/^[[:space:]]*//' | sort | uniq -c",
+        "  grep -E '^\\[(mcp_servers|plugins)\\.' \"$c\" | sed -E 's/^\\[(mcp_servers|plugins)\\.(\"[^\"]+\"|[^].]+).*/\\1: \\2/' | sort -u",
+        "else echo \"[$c] none\"; fi",
+        "for x in .claude/.git .claude/skills .claude/CLAUDE.md .codex/.git .codex/skills .codex/AGENTS.md; do [ -e \"$HOME/$x\" ] && echo \"exists $x : yes\" || echo \"exists $x : no\"; done",
+        "```",
+        "",
+        "### Mac・Linux・WSL（2回目）",
+        "```bash",
+        "for n in claude codex; do",
+        "  p=$(command -v \"$n\") && echo \"$n version=$(\"$n\" --version 2>/dev/null | head -1) command-file: $(ls -lL \"$p\" | awk '{print $6,$7,$8}')\" || echo \"$n not-found\"",
+        "done",
+        "r=$( { git rev-parse --show-toplevel 2>/dev/null; for g in ./*/.git ./*/*/.git; do [ -e \"$g\" ] && dirname \"$g\"; done; } | sort -u )",
+        "echo \"git repositories: $(printf '%s\\n' \"$r\" | grep -c .)\"",
+        "i=0",
+        "printf '%s\\n' \"$r\" | grep . | head -5 | while IFS= read -r d; do",
+        "  i=$((i+1))",
+        "  s=$(git -C \"$d\" --no-optional-locks status --porcelain 2>/dev/null) || { echo \"repo$i unreadable\"; continue; }",
+        "  ig=\"\"; for x in .env .env.local a.pem a.key id_rsa; do git -C \"$d\" check-ignore -q \"$x\" 2>/dev/null && ig=\"$ig $x=yes\" || ig=\"$ig $x=no\"; done",
+        "  hit=$(git -C \"$d\" log --all --format= --name-only -- '*.env' '*.pem' '*.key' '*id_rsa' 2>/dev/null | sort -u | grep -c .)",
+        "  echo \"repo$i changed=$(printf '%s\\n' \"$s\" | grep -c .) last-commit=$(git -C \"$d\" log -1 --format=%cs 2>/dev/null) ignored:$ig secret-files-in-history=$hit\"",
+        "done",
+        "crontab -l 2>/dev/null | awk '!/^[[:space:]]*#/ && $1 !~ /=/ && NF>=6 {print \"cron:\",$1,$2,$3,$4,$5,$6}'",
+        "if command -v launchctl >/dev/null 2>&1; then launchctl list 2>/dev/null | awk 'NR>1 {print $3}' | grep -v '^com\\.apple\\.' | sed 's/^/launchd: /'; fi",
+        "```",
+        "",
+        "## 読み取りと判定の決まり",
+        "- Windows では python を使わない（Microsoft Store の入口ファイルだけで、起動できないことが多いため）",
+        "- 定期実行の一覧は、Codex の隔離された環境では読めないことがある。tasks unreadable と出たら試し直さず、D1 と D2 は本人に聞く質問を書く",
+        "- green は、基準のすべてを確かめられたときだけ付ける。本人の答えが要る点が残るなら yellow か \"ask\" にする（緑の付けすぎは、事故の見落としにつながるため）",
+        "- Windows のホームフォルダは $env:USERPROFILE で取る。[Environment]::GetFolderPath('UserProfile') は使わない（Codex では隔離用のアカウント CodexSandboxOffline のフォルダを指し、本人の設定が無いように見えるため）",
+        "- 「無い」と「読めなかった」を分ける。ホームフォルダの .claude や .codex が無いと出たら、見ている場所が本人のフォルダか確かめてから判定する。ファイルが読めて、そのキーが書かれていないのは「読めた結果」なので \"ask\" にしない（例：config.toml に sandbox_mode が書かれていない→既定のまま使っている、と書いて判定する）。ただし A1 は除く（モードは画面でも選ぶので、設定だけでは普段の使い方が分からないため）",
+        "- 判定は、今動いているツール（Claude Code か Codex）の設定で行う。もう一方のツールの設定が読めなくても判定を止めず、読めなかったことを evidence に書く（両方を使っている方には、もう一方のツールでも同じ指示文を実行してもらう）。もう一方のツールが見つからないときは、入っていないと決めつけず、使っているかを本人に確かめる",
+        "- 調べられた項目（自動確認の項目）は、必ず green・yellow・red・na のどれかを付ける。本人に確かめたい点が残るときは、判定を付けたうえで、evidence の末尾に「本人への確認：」に続けて質問を1文で書く。\"ask\" は、読めなかったときと、本人にしか分からないときだけにする",
+        "- 作業フォルダが、ホームフォルダ・デスクトップ・ドライブ直下のときは、ファイルの一覧と中身の検索をしない。関係する項目を \"ask\" にし、案件のフォルダで実行し直せることを evidence に書く。設定ファイルの確認（決まったコマンド）は続ける",
+        "- ファイル名の一覧の範囲は、作業フォルダの下の深さ3まで。直下だけで済ませない。中身の検索は深さを指定できないことがあるので、深さは問わず、下のファイルとフォルダの指定で絞る。一覧と中身の検索では、次のフォルダを対象から外す：隠しフォルダ（名前が . で始まるもの。.ssh・.aws・.config など）・node_modules・.venv・ログや出力のフォルダ（logs・output・dist・build・runs・evals など）・キャッシュ",
+        "- 中身の検索は、次のファイルだけを指定して行う：スクリプト（.py .js .ts .sh .ps1 .bat .cmd .gs）、設定（.json .toml .yaml .yml .ini）、指示書（CLAUDE.md・AGENTS.md）。.env と鍵ファイル、xlsx・csv・pdf・docx などの資料、ログ、顧客名簿らしいファイルは中身を検索しない",
+        "- 点検を始めたフォルダを、調べる範囲として使う。今回の起動フォルダだけで、普段の使い方（A2）を判定しない",
+        "",
+      ];
+      const PROMPT_TAIL = [
+        "## 出力形式",
+        "全30項目を1つずつ含む JSON 配列だけを、```json で始まるコードブロックで出力する。",
+        "[{\"id\":\"A1\",\"rating\":\"green|yellow|red|na|ask\",\"evidence\":\"確かめた事実を1〜2文（秘密情報の値は含めない）\",\"fix\":\"yellow か red のとき、直し方を1文。それ以外は空文字\"}]",
+        "4つのキー（id・rating・evidence・fix）は、全項目に必ず入れる。fix が不要な項目も、キーを省かずに \"\" にする。fix にコマンドの例を書くときは、本人の OS に合わせる（Windows なら PowerShell の例）。.env は秘密情報のファイルなので、秘密情報でない設定（モデル名など）の置き場所として勧めない。アプリのコードの書き換えは勧めない。",
+      ];
       const ITEMS = [
         {
           id: "A1",
           crit: 1,
           mode: "auto",
+          conf: 1, // 画面の表示だけ「自動確認＋本人への確認」にする（診断用の指示文の出力は mode で決まる）
           title: "承認なしで何でも実行できるモードを、普段使いしていない",
           why: "確認なしで全操作を許すと、削除や送信の誤りがそのまま実行されます。報道された削除事故の多くがこの状態でした。",
-          how: "Claude Code は ~/.claude/settings.json の permissions.defaultMode と、起動時に --dangerously-skip-permissions を付けていないか。Codex は ~/.codex/config.toml の sandbox_mode と approval_policy、起動時の --dangerously-bypass-approvals-and-sandbox。",
+          how: "設定に下の red の値があれば red にする。それ以外は rating を \"ask\" にし、普段どのモードで起動しているかを本人に聞く（モードは画面でも切り替えられ、設定に書かれていなくても確認ありとは限らないため）。いま動いているモードは、evidence に参考として書くだけにする。見る設定は、Claude Code は ~/.claude/settings.json の permissions.defaultMode と、起動時に --dangerously-skip-permissions を付けていないか。Codex は ~/.codex/config.toml の sandbox_mode と approval_policy、起動時の --dangerously-bypass-approvals-and-sandbox。",
           g: "既定が確認ありのモード（manual・plan・acceptEdits など）。自動判定モード（auto）は、削除と送信の禁止設定（A3・A5）と組み合わせて使っている",
           y: "自動判定モードや広い自動許可を使っているが、削除と送信の禁止設定が足りない",
           r: "bypassPermissions、--dangerously-skip-permissions、Codex の danger-full-access と承認なし（never）の組み合わせ、--dangerously-bypass-approvals-and-sandbox のいずれかを日常的に使っている",
-          fix: "既定を確認ありのモードに戻す。全許可は、使い捨てのフォルダや隔離した環境で作業するときだけにする",
+          fix: "既定を確認ありのモードに戻す。全許可は、使い捨てのフォルダや隔離した環境で作業するときだけにする。アプリでは画面でもモードを選ぶので、普段どのモードで使っているかは本人に確かめる",
         },
         {
           id: "A2",
@@ -1007,7 +1305,7 @@
           mode: "auto",
           title: "AIが触れる範囲を、作業フォルダに限っている",
           why: "ホームフォルダやドライブ全体を作業場所にすると、一度の誤操作で無関係なファイルまで消えます。",
-          how: "普段どのフォルダで起動しているか（ホームフォルダ・デスクトップ・ドライブ直下ではないか）。Claude Code の permissions.additionalDirectories と permissions.blockReadsOutsideWorkingDirectories。Codex の sandbox_mode と書き込みを許したフォルダ（writable_roots）。",
+          how: "普段どのフォルダで起動しているか（ホームフォルダ・デスクトップ・ドライブ直下ではないか）は本人にしか分からない。今回の起動フォルダは evidence に参考として書くだけにし、判定の理由にしない。作業フォルダがホームフォルダ・デスクトップ・ドライブ直下のときは red、追加の許可フォルダが多いときは yellow、それ以外は rating を \"ask\" にして普段の起動フォルダを本人に聞く。Claude Code の permissions.additionalDirectories と permissions.blockReadsOutsideWorkingDirectories。Codex の sandbox_mode と書き込みを許したフォルダ（writable_roots）。",
           g: "案件ごとのフォルダで起動し、追加で許可したフォルダは必要なものだけ",
           y: "追加の許可フォルダが多い、または上の階層のフォルダから起動することがある",
           r: "ホームフォルダ・デスクトップ全体・ドライブ直下で起動して作業している",
@@ -1018,12 +1316,12 @@
           crit: 1,
           mode: "auto",
           title: "削除・強制上書きの操作を止める設定がある",
-          why: "「全部消して作り直す」「履歴を強制的に書き換える」操作を、AIが良かれと思って選ぶことがあります。",
-          how: "Claude Code の permissions.deny と permissions.ask に、rm -rf・git push --force・git reset --hard・データベースの削除などが入っているか。危険なコマンドを止めるフック（PreToolUse）の有無。Codex は承認ポリシーとサンドボックスの設定。",
-          g: "削除・強制上書き・履歴の書き換えが、禁止または毎回確認になっている",
-          y: "一部だけ対策している",
+          why: "「全部消して作り直す」「履歴を強制的に書き換える」操作を、AIが良かれと思って選ぶことがあります。deny と ask は、公式の説明でもセキュリティの境界ではないとされ、書き方を変えたコマンドは通ることがあります。そのため、設定だけでは緑にしません。",
+          how: "Claude Code の permissions.deny と permissions.ask に、rm -rf・git push --force・git reset --hard・データベースの削除など（Windows では PowerShell の Remove-Item -Recurse -Force も）が入っているか。危険なコマンドを止めるフック（PreToolUse）の有無。Codex は承認ポリシーとサンドボックスの設定。",
+          g: "削除・強制上書き・履歴の書き換えを、フックまたは毎回の確認で止めていて、Git かバックアップで戻せる",
+          y: "deny や ask の設定だけで止めている（書き方を変えたコマンドは通ることがあるため）、または一部だけ対策している",
           r: "対策がない",
-          fix: "deny または ask に削除・強制系の操作を追加する。必要ならフックで止める",
+          fix: "次の3段で整える。(1) 危険な操作を止めるフック（PreToolUse）を入れる。(2) deny と ask に、削除・強制上書きの操作を加える（Windows は PowerShell の Remove-Item -Recurse -Force も）。(3) 万一通っても戻せるよう、Git とバックアップを用意する（C4・C1）",
         },
         {
           id: "A4",
@@ -1031,11 +1329,11 @@
           mode: "auto",
           title: "自動で許可している操作が広すぎない",
           why: "「毎回聞かれるのが面倒」で許可を足し続けると、何でも通る状態になります。",
-          how: "Claude Code の permissions.allow（Bash(*) のような全許可、ワイルドカードの数）と、.claude/settings.local.json に溜まった「今後は聞かない」の許可の件数（どちらも中のコマンドは読まない）。意味の分からない許可があるかは本人に聞く。Codex の信頼済みプロジェクト（projects の trust_level）。",
+          how: "Claude Code の permissions.allow（Bash(*) のような全許可、ワイルドカードの数）と、.claude/settings.local.json に溜まった「今後は聞かない」の許可の件数（どちらも中のコマンドは読まない）。意味の分からない許可があるかは本人に聞く。Codex の信頼済みプロジェクト（projects の trust_level）。trust_level は A4 だけで見て、A2 の判定には使わない。",
           g: "必要なコマンドだけを個別に許可していて、全部説明できる",
           y: "広い許可（ワイルドカード）が数件ある",
-          r: "全コマンドを許可している、または中身を把握していない",
-          fix: "許可の一覧を棚卸しし、使っていないもの・広すぎるものを外す",
+          r: "Bash(*)・PowerShell(*) や、カッコのない Bash・PowerShell のように全コマンドを許可している、または中身を把握していない",
+          fix: "許可の一覧を棚卸しし、使っていないもの・広すぎるもの（Bash(*)・PowerShell(*)、カッコのない Bash・PowerShell など）を外す",
         },
         {
           id: "A5",
@@ -1053,13 +1351,14 @@
           id: "A6",
           crit: 0,
           mode: "auto",
+          conf: 1, // 画面の表示だけ「自動確認＋本人への確認」にする（診断用の指示文の出力は mode で決まる）
           title: "つながっている外部サービス（MCP・プラグイン）を把握している",
           why: "使っていない接続や出所の分からない接続は、情報の出口にも入口にもなります。",
-          how: "Claude Code の .mcp.json と ~/.claude.json の mcpServers（名前と種類だけ。ほかの値は読まない）、有効なプラグイン（enabledPlugins の名前）。Codex の config.toml の mcp_servers と plugins。",
+          how: "Claude Code の .mcp.json と ~/.claude.json の mcpServers（名前と種類だけ。ほかの値は読まない）、有効なプラグイン（enabledPlugins の名前）。Codex の config.toml の mcp_servers と plugins。claude.ai の画面やアプリでつないだコネクタと、プラグインが持ち込む接続は設定ファイルに出ないので、本人への確認に書く。",
           g: "すべての接続の用途を説明でき、使っていないものがない。書き込みできる接続を把握している",
           y: "用途の分からない接続・使っていない接続が数件ある",
           r: "何がつながっているか把握していない、または出所の分からない接続がある",
-          fix: "接続の一覧を作り、使っていないものを外す。出所の分からないものは止めて確認する",
+          fix: "接続の一覧を作り、使っていないものを外す。出所の分からないものは止めて確認する。画面でつないだコネクタは設定に出ないので、本人が画面で確かめる",
         },
         {
           id: "B1",
@@ -1067,23 +1366,23 @@
           mode: "auto",
           title: "APIキーやパスワードを、平文であちこちに置いていない",
           why: "指示書やスクリプトに書いたキーは、AIが読み、共有や公開のときに一緒に外へ出ていきます。",
-          how: "作業フォルダ・指示書（CLAUDE.md・AGENTS.md）・スクリプト・設定ファイルに、キーやパスワードが直書きされていないか。検索は、一致したファイル名だけを出す方法（grep -rl・rg -l 相当）で行い、一致した行は表示しない。一致したファイルも開かない。xxx・your-api-key・dummy・example のような見本の値や、同じ文字の繰り返しには一致しない検索の形にする。そのため、サービス固有のキーの形（sk-proj- など）も含めて、値の部分に数字を1つ以上含む形に限って検索する（例：sk-proj-[A-Za-z_-]*[0-9][A-Za-z0-9_-]{19,}）。見本の値は、xxxx のように数字を含まないことが多いため。正規表現の先読み（(?!…)）は使わない（Grep は先読みに対応しておらず、エラーになる）。見本の値かどうか分からない一致だけでは red にしない。yellow にして件数を書き、本人に確かめる質問を evidence に添える。",
-          g: "保管場所が1か所に決まっていて、指示書やスクリプトに直書きがない",
-          y: "保管場所が複数に分かれている",
+          how: "作業フォルダ・指示書（CLAUDE.md・AGENTS.md）・スクリプト・設定ファイルに、キーやパスワードが直書きされていないか。秘密情報そのものを入れるファイル（.env・鍵ファイル・サービスアカウントの鍵 JSON など）は B2 で数え、B1 には数えない。検索は、一致したファイル名だけを出す方法（grep -rl・rg -l 相当）で行い、一致した行は表示しない。一致したファイルも開かない。xxx・your-api-key・dummy・example のような見本の値や、同じ文字の繰り返しには一致しない検索の形にする。そのため、サービス固有のキーの形（sk-proj- など）も含めて、値の部分に数字を1つ以上含む形に限って検索する（例：sk-proj-[A-Za-z_-]*[0-9][A-Za-z0-9_-]{19,}）。見本の値は、xxxx のように数字を含まないことが多いため。正規表現の先読み（(?!…)）は使わない（Grep は先読みに対応しておらず、エラーになる）。見本の値かどうか分からない一致だけでは red にしない。yellow にして件数を書き、本人に確かめる質問を evidence に添える。",
+          g: "指示書やスクリプトに直書きがない",
+          y: "直書きか見本の値か分からない一致がある",
           r: "指示書・スクリプト・共有フォルダに直書きがある",
-          fix: "保管場所を1か所にまとめ、直書きを消す。外に出た可能性のあるキーは再発行する",
+          fix: "指示書やスクリプトにある直書きを消し、キーは直書きでない形（環境変数など）で渡す。外に出た可能性のあるキーは再発行する",
         },
         {
           id: "B2",
           crit: 1,
           mode: "auto",
           title: "秘密情報のファイルを、AIが読めないようにしている",
-          why: "AIは作業中に周りのファイルを読みます。読まれたキーは、会話の記録にも残ります。",
-          how: "Claude Code の permissions.deny に、.env・鍵ファイル（*.pem・*.key・id_rsa など）の読み取り禁止（Read(./.env) など）があるか。Codex では、秘密情報を作業フォルダの外に置いているか。",
-          g: "秘密情報ファイルの読み取りが禁止されている、または作業フォルダの外にある",
-          y: "一部のファイルだけ禁止",
-          r: "禁止設定がなく、秘密情報ファイルが作業フォルダの中にある",
-          fix: "deny に Read(./.env) や鍵ファイルを追加し、秘密情報を作業フォルダの外へ移す",
+          why: "AIは作業中に周りのファイルを読みます。読まれたキーは、会話の記録にも残ります。読み取り禁止の設定（deny）は、シェルのコマンドからの読み取りを止めないので、本番のキーは作業フォルダの外に置くのが確実です。",
+          how: "作業フォルダの中に、秘密情報そのものを入れるファイル（.env・鍵ファイル・サービスアカウントの鍵 JSON など）があるかを、ファイル名で調べる（中身は開かない）。Claude Code の permissions.deny に、.env・鍵ファイル（*.pem・*.key・id_rsa など）の読み取り禁止（Read(./.env) など）があるか。Codex では、秘密情報を作業フォルダの外に置いているか。",
+          g: "本番のキーが作業フォルダの外にある。作業フォルダの中の .env は開発用の値だけで、読み取り禁止と Git の除外を設定している",
+          y: "読み取り禁止はあるが、本番のキーが作業フォルダの中にある（シェルからの読み取りは止まらないため）。開発用の .env に読み取り禁止か Git の除外がないときも yellow。開発用か本番用か分からないときも yellow にし、本人への確認を書く",
+          r: "秘密情報ファイルに効く読み取り禁止がなく、本番のキーが作業フォルダの中にあると分かっている",
+          fix: "本番のキーは作業フォルダの外へ移す（deny はシェルからの読み取りを止めないため）。開発用の .env は、deny に Read(./.env) や鍵ファイルの読み取り禁止を加え、Git の管理からも外す",
         },
         {
           id: "B3",
@@ -1091,11 +1390,11 @@
           mode: "auto",
           title: "秘密情報を Git の管理対象から外している",
           why: "一度コミットしたキーは、ファイルを消しても履歴に残ります。",
-          how: ".gitignore に .env や鍵ファイルが入っているか。Git の履歴に、それらのファイル名が登場しないか（上の git log の形でファイル名だけを検索し、差分・本文・中身は表示しない）。Git を使っていなければ「該当なし」。",
+          how: "C4 で見つけた Git リポジトリごとに、.env や鍵ファイルが Git の管理から外れているか（ignored）。履歴に、それらのファイルが登場しないか（secret-files-in-history）。Git を使っていなければ「該当なし」。",
           g: "除外されていて、履歴にも残っていない",
-          y: "除外はしているが、履歴を確かめていない",
-          r: "除外していない、または履歴にキーのファイルが残っている",
-          fix: ".gitignore に追加する。履歴に残ったキーは再発行する",
+          y: "除外はしているが、履歴を確かめていない。または、一部の種類だけ除外している",
+          r: ".env も鍵ファイルも除外していない、または履歴にキーのファイルが残っている",
+          fix: ".gitignore に .env と鍵ファイルの全部の種類を追加する。履歴に残ったキーは再発行する",
         },
         {
           id: "B4",
@@ -1113,8 +1412,7 @@
           id: "B5",
           crit: 0,
           mode: "ask",
-          title:
-            "AIサービスのデータの扱い（学習への利用・保存期間）を確認している",
+          title: "AIサービスのデータの扱い（学習への利用・保存期間）を確認している",
           why: "プランや設定によっては、入力した内容がサービスの改善に使われることがあります。",
           how: "使っているAIサービスごとに、法人向けプランか、学習への利用をオフにしているかを本人に聞く。",
           g: "すべてのサービスで確認済み（法人向けプラン、または学習への利用がオフ）",
@@ -1139,12 +1437,12 @@
           crit: 1,
           mode: "ask",
           title: "AIが触るデータに、バックアップがある",
-          why: "AIの誤操作でファイルが消えたとき、戻せるかどうかはバックアップだけで決まります。",
-          how: "AIが読み書きするフォルダ・データベース・クラウドのファイルについて、バックアップの有無と頻度を本人に聞く。",
+          why: "AIの誤操作でファイルが消えたとき、戻せるかどうかはバックアップだけで決まります。OneDrive などの同期は、削除も同期されるため、バックアップに数えません。",
+          how: "AIが読み書きするフォルダ・データベース・クラウドのファイルについて、バックアップの有無と頻度を本人に聞く。OneDrive などの同期はバックアップに数えない（削除も同期されるため）。",
           g: "重要なデータは自動でバックアップされている",
           y: "手動、または一部だけ",
           r: "バックアップがない",
-          fix: "自動バックアップを設定する（クラウドの版の履歴機能も含む）",
+          fix: "自動バックアップを設定する（OneDrive などの同期だけでは、バックアップになりません）",
         },
         {
           id: "C2",
@@ -1176,11 +1474,11 @@
           mode: "both",
           title: "作業をバージョン管理し、AIの変更を差分で確かめている",
           why: "差分が見えれば、AIが何を変えたかを確かめ、元に戻せます。",
-          how: "主な作業フォルダが Git などで管理されているか（git status・git log が使えるか）。本人に、AIの変更を確かめてから確定しているかを聞く。",
+          how: "主な作業フォルダとは、点検を始めたフォルダと、その下2階層までにある Git リポジトリのこと。決まったコマンドの出力（5件まで）で確かめ、全体の件数を書く。見つからないときは、Git を使っていないと決めつけず、rating を \"ask\" にして本人に聞く。本人に、AIの変更を確かめてから確定しているかを聞く。",
           g: "管理していて、変更の前後を確かめている",
-          y: "管理しているが、確かめるのは不定期",
+          y: "管理しているが、確かめるのは不定期。または、主な作業フォルダの一部だけを管理している",
           r: "管理していない",
-          fix: "主な作業フォルダを Git で管理し、確定の前に差分を見る",
+          fix: "主な作業フォルダを Git で管理し、確定の前に差分を見る。git init は案件のフォルダごとに行い、ホーム・デスクトップ・ドライブ直下と、複数の案件をまとめた上の階層では行わない",
         },
         {
           id: "C5",
@@ -1284,11 +1582,11 @@
           mode: "auto",
           title: "使っているAIツールのバージョンが古すぎない",
           why: "古いバージョンでは、新しいモデルが使えない、不具合や脆弱性が直っていない、といったことが起きます。",
-          how: "claude --version・codex --version などで入っているバージョンを確かめ、点検者が最新版と比べる（最新版はネットで調べない）。",
+          how: "決まったコマンドの出力のバージョンとコマンドの更新日を evidence に書き、更新日で判定する（最新版はネットで調べない）。コマンドが見つからないときや、更新日が読めないときは \"ask\" にする。コマンドの更新日はアプリの版と同じとは限らないので、本人への確認に「普段使うアプリの更新」を書く（判定は更新日で付ける）。",
           g: "直近1か月以内のバージョン、または定期的に更新している",
           y: "数か月更新していない",
           r: "半年以上更新していない、または更新方法が分からない",
-          fix: "更新の手順を決め、月1回更新する",
+          fix: "更新の手順を決め、月1回更新する。コマンドの更新日はアプリの版と同じとは限らないので、普段使うアプリの更新も本人が確かめる",
         },
         {
           id: "F2",
@@ -1296,11 +1594,11 @@
           mode: "auto",
           title: "自動処理の中で、モデル名を直書きしていない",
           why: "モデルは数か月ごとに入れ替わり、古いモデルは提供が終わります。直書きが散らばると、終了の日に一斉に止まります。",
-          how: "スクリプトや設定の中に、モデル名（claude-…、gpt-… など）が何か所に書かれているか。検索は、一致したモデル名の部分だけを出す方法（grep -o 相当）で行い、行全体は表示しない。提供終了が予定されているモデルを使っていないか。",
+          how: "定期実行やAIの自動処理で使うスクリプトと設定の中に、モデル名（claude-…、gpt-… など）が何か所に書かれているか。検索は、一致したモデル名の部分だけを出す方法（grep -o 相当）で行い、行全体は表示しない。データのファイルや、お客様に納めるアプリのものは数えない。自動処理のものか分からない一致は、yellow にして本人への確認を書く。提供終了かどうかは点検者が確かめるので、AIは red を付けず、見つけたモデル名を evidence に書く。",
           g: "モデルの指定が1か所にまとまっている",
           y: "直書きが数か所ある",
           r: "提供が終わった、または終了予定のモデルを使っている",
-          fix: "モデルの指定を、設定ファイルの1か所にまとめる",
+          fix: "自動処理で使うモデル名を、その処理の設定の1か所にまとめる。データやお客様に納めるアプリのものは対象にしない",
         },
         {
           id: "F3",
@@ -1352,25 +1650,44 @@
         },
       ];
 
-      // 改修用の指示文で使う、項目ごとの「AIがすること」。ITEMS の how は読み取り専用の点検用なので流用しない
+      // 改修用の指示文で使う、項目ごとの作業。ITEMS の how は読み取り専用の点検用なので流用しない。
+      // 分担は項目の種類（mode）ではなく、作業ごとに決める。
+      // FIX_STEPS = AIがする作業（設定の案を見せる・一覧にする・下書きを作る）／HUMAN_STEPS = 本人がする作業。
+      // どちらにも載っていない項目（聞き取り項目など）は、ITEMS の fix を本人の作業として渡す。
       const FIX_STEPS = {
-        A1: "Claude Code は ~/.claude/settings.json の permissions.defaultMode を、確認ありのモードへ戻す案を見せる（値は claude --help の --permission-mode の選択肢で確かめて使う。今の版は manual、古い版は default）。Codex は ~/.codex/config.toml の sandbox_mode と approval_policy を見直す案を見せる。起動のオプション（--dangerously-skip-permissions・--dangerously-bypass-approvals-and-sandbox）を普段付けているなら、外し方を本人に案内する",
-        A2: "permissions.additionalDirectories（Codex は writable_roots）の一覧を見せ、要らないものを外す案を見せる。起動するフォルダは本人の習慣なので、案件フォルダで起動する方法を案内する",
-        A3: "Claude Code は permissions.deny か ask に、rm -rf・git push --force・git reset --hard などを追加する案を見せる。Codex は approval_policy を、毎回確認する側へ寄せる案を見せる",
-        A4: "permissions.allow を1件ずつ本人に見せ（トークンらしい値は ***）、全許可（Bash(*) など）と使っていないものを外す案を見せる。Codex は信頼済みプロジェクト（trust_level）の一覧を見せる",
+        A1: "Claude Code は ~/.claude/settings.json の permissions.defaultMode の行だけを読み、確認ありのモードへ戻す案を見せる（値は claude --help の --permission-mode の選択肢で確かめて使う。今の版は manual、古い版は default）。Codex は ~/.codex/config.toml の sandbox_mode と approval_policy の行だけを読み、見直す案を見せる",
+        A2: "permissions.additionalDirectories（Codex は writable_roots）の行だけを読んで一覧を見せ、要らないものを外す案を見せる",
+        A3: "次の3段で、案を1段ずつ見せる。(1) 危険な操作を止めるフック（PreToolUse）：入れるかどうかと中身を本人と決める。フックに入れるコマンドは、書く前に全文を見せる。(2) permissions.deny と ask に、削除・強制上書きの操作を追加する案：rm -rf・git push --force・git reset --hard などに加え、Windows の本人には PowerShell の Remove-Item -Recurse -Force も入れる（例：deny に Bash(rm -rf *)・Bash(git push --force *)・Bash(git reset --hard *)・PowerShell(Remove-Item -Recurse -Force *)）。deny と ask だけでは、書き方を変えたコマンドが通ることがあるので、(1) のフックと組み合わせる。(3) Git とバックアップ：戻せる状態かを、点検票の C4（Git）と C1（バックアップ）の判定で確かめ、足りないときはその項目の手順に進む。Codex は approval_policy を、毎回確認する側へ寄せる案を見せる",
+        A4: "permissions.allow を1件ずつ本人に見せ（トークンらしい値は ***）、全許可（Bash(*)・PowerShell(*)、カッコのない Bash・PowerShell など）と使っていないものを外す案を見せる。Codex は信頼済みプロジェクト（trust_level）の一覧を見せる",
         A5: "送信・投稿・公開・決済を行う連携を本人と洗い出し、その操作を permissions.ask に入れる案を見せる。連携そのものは呼び出さない",
-        A6: "つながっている接続とプラグインの名前を一覧にして見せ、外すものを本人に決めてもらう。外す作業は公式のコマンドを案内する",
-        B1: "直書きのあるファイルの名前を一覧にする（値は出さない）。キーを保管場所へ移し、ファイル側を環境変数の参照に変える手順を本人に渡す。外に出た可能性のあるキーは、本人が再発行する",
-        B2: "permissions.deny に、.env と鍵ファイルの読み取り禁止を追加する案を見せる（例：Read(./.env)・Read(./.env.*)・Read(//**/.env)・Read(//**/*.pem)・Read(//**/*.key)・Read(//**/id_rsa)）。秘密情報のファイルを作業フォルダの外へ移すのは本人の作業",
-        B3: ".gitignore に .env と鍵ファイルを追加する案を見せる。履歴に残っているときは履歴を書き換えず、そのキーの再発行を本人に案内する",
-        B4: "個人情報らしいファイルの置き場所の案を本人と決める（中身は開かない）。ファイルを移すのは本人の作業",
-        C4: "Git を使っていないフォルダなら、git init と .gitignore の作成までを提案する。最初の commit は本人に手順を渡す",
-        C5: "PCの外に保存する対象（設定・指示書・スキル）の一覧と、復元の手順の下書きを見せる。秘密情報を含むファイルは対象から外す。保存先への push は本人の作業",
-        D1: "定期実行の一覧（タスク名・実行間隔・実行ファイル名だけ）を1枚の文書にする案を見せる。担当と目的は本人に聞く。自動処理を止める操作はしない",
-        D2: "失敗に気づく方法（ログの場所・通知）の案を見せる。通知の送り先は本人が決める。自動処理の本体を変えるときは、1つずつ確認する",
-        F1: "入っているバージョンを示し、更新のコマンドを本人に案内する。更新は本人の作業",
-        F2: "モデル名が書かれた場所の一覧を見せ、設定の1か所にまとめる案を見せる。変更は1ファイルずつ確認する",
-        G3: "使ってよいツール・入力してはいけない情報・確認が必要な操作を1枚にまとめた下書きを見せる。社内への共有は本人の作業",
+        A6: "つながっている接続とプラグインの名前を一覧にして見せる",
+        B1: "直書きのあるファイルの名前を一覧にする（値は出さない・開かない）",
+        B2: "permissions.deny に、.env と鍵ファイルの読み取り禁止を追加する案を見せる（例：Read(./.env)・Read(./.env.*)・Read(//**/.env)・Read(//**/*.pem)・Read(//**/*.key)・Read(//**/id_rsa)）。deny はシェルのコマンド（cat・Get-Content など）からの読み取りを止めないことも、本人に伝える",
+        B3: ".gitignore に .env と鍵ファイル（.env.*・*.pem・*.key・id_rsa）を追加する案を見せる。履歴は書き換えない",
+        B4: "個人情報らしいファイルの置き場所の案を本人と決める（中身は開かない）",
+        C4: "Git を使っていない案件のフォルダなら、git init と .gitignore の作成までを提案する。ホーム・デスクトップ・ドライブ直下と、複数の案件をまとめた上の階層では git init しない（その場合は、案件のフォルダごとに行う案を見せる）",
+        C5: "PCの外に保存する対象（設定・指示書・スキル）の一覧と、復元の手順の下書きを見せる。秘密情報を含むファイルは対象から外す",
+        D1: "定期実行の一覧（タスク名だけ）を1枚の文書にする案を見せる。自動処理を止める操作はしない",
+        D2: "失敗に気づく方法（ログの場所・通知）の案を見せる。自動処理の本体を変えるときは、1つずつ確認する",
+        F1: "入っているバージョンとコマンドの更新日を示す",
+        F2: "自動処理で使うモデル名が書かれた場所の一覧を見せ、その処理の設定の1か所にまとめる案を見せる。変更は1ファイルずつ確認する。データやお客様に納めるアプリのものは対象にしない",
+        G3: "使ってよいツール・入力してはいけない情報・確認が必要な操作を1枚にまとめた下書きを見せる",
+      };
+      const HUMAN_STEPS = {
+        A1: "起動のときに付けているオプション（--dangerously-skip-permissions・--dangerously-bypass-approvals-and-sandbox）を外す。アプリの画面で選ぶモードも、確認ありのモードにする（画面の選択は設定に出ないので、本人が画面で確かめる）",
+        A2: "案件のフォルダで起動する習慣にする（起動するフォルダは本人の習慣で、AIは変えられない）",
+        A3: "フックを入れるときは、中身を確かめて承認する。Git の管理（C4）とバックアップ（C1）が整っているかを確かめ、足りないものを用意する",
+        A6: "外す接続を決め、公式のコマンド（claude mcp remove など）で外す。claude.ai の画面やアプリでつないだコネクタは設定に出ないので、画面で確かめる",
+        B1: "キーを直書きでない形（環境変数など）に移し、ファイルにある直書きを消す。外に出た可能性のあるキーは、再発行して古いキーを無効にする（キーの再発行は管理画面での本人の作業）",
+        B2: "本番のキーを、作業フォルダの外へ移す（ファイルの移動は本人の作業）。deny を設定しても、シェルからの読み取りは止まらないため",
+        B3: "履歴に残ったキーは、再発行して古いキーを無効にする（履歴の書き換えはAIにさせない）",
+        B4: "個人情報らしいファイルを、別のフォルダへ移す。AIには匿名にしたもの・抜粋したものを渡す",
+        C4: "最初の commit を行う",
+        C5: "保存先（非公開のリポジトリなど）へ push する",
+        D1: "それぞれの自動処理の担当と目的を答える。目的の分からないものは、止めるかどうかを本人が決める",
+        D2: "通知の送り先を決める",
+        F1: "更新のコマンドを本人が実行する。普段使うアプリの更新も確かめる",
+        G3: "社内に共有する",
       };
 
       const KEY = "ai-shaken-checklist-v1";
@@ -1445,8 +1762,20 @@
         const p = (n) => String(n).padStart(2, "0");
         return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}`;
       }
-      // 直す順番：★重要の赤 → 赤 → ★重要の黄 → 黄
-      function fixTargets() {
+      // 判定は付いているが、本人に確かめたい点が残っている項目（evidence に「本人への確認：」がある）
+      const CONFIRM = "本人への確認：";
+      function hasConfirm(id) {
+        const o = it(id);
+        return !!o.rating && String(o.evidence || "").indexOf(CONFIRM) >= 0;
+      }
+      // 「本人への確認：」より後ろの文（質問）を取り出す
+      function confirmText(id) {
+        const e = String(it(id).evidence || "");
+        const k = e.indexOf(CONFIRM);
+        return k < 0 ? "" : e.slice(k + CONFIRM.length).replace(/\s+/g, " ").trim();
+      }
+      // 直す順番：★重要の赤 → 赤 → ★重要の黄 → 黄（本人への確認が残るものも含む。レポートの表示用）
+      function redYellow() {
         const pick = (r, crit) =>
           ITEMS.filter((x) => it(x.id).rating === r && !!x.crit === crit);
         return [
@@ -1456,126 +1785,24 @@
           ...pick("yellow", false),
         ];
       }
+      // 改修用の指示文の対象。「本人への確認：」が残る項目は、答えが出るまで外す
+      function fixTargets() {
+        return redYellow().filter((x) => !hasConfirm(x.id));
+      }
+      function fixHeld() {
+        return redYellow().filter((x) => hasConfirm(x.id));
+      }
+      function heldNote() {
+        const h = fixHeld();
+        return h.length
+          ? `「本人への確認：」が残っている ${h.length} 項目（${h.map((x) => x.id).join("・")}）は、答えが出るまで改修の対象から外しています。`
+          : "";
+      }
 
+      // 診断用の指示文。橋本CIOの第3.5版（2026-11-09）と1バイトも違わないこと。
+      // 先頭と末尾は PROMPT_HEAD・PROMPT_TAIL（txt をそのまま1行ずつ文字列にしたもの）、点検項目の部分だけ ITEMS から作る
       function buildPrompt() {
-        // 2026-11-02 橋本CIOの修正版（読み取りだけで点検・確認画面の案内・設定はキーだけ取り出す）に差し替え
-        const L = [];
-        L.push("# AI環境の点検（読み取り専用）");
-        L.push("");
-        L.push(
-          "あなたは、この会社のAI環境の点検係です。最初に本人へ短い案内を表示し、下の「点検項目」を順に調べ、最後に JSON だけを出力してください。",
-        );
-        L.push("");
-        L.push("## 必ず守ること");
-        L.push(
-          "- 調べ始める前に、次の3行をそのまま本人に表示する。返事は待たずに点検を始める",
-        );
-        L.push(
-          "  「これから読み取りだけで、AI環境を点検します。ファイルの変更や削除はしません。",
-        );
-        L.push(
-          "  　確認の画面が出たら、内容が一覧の表示・検索・読み取りなら許可してください（「今後は確認しない」のような選択肢は選ばないでください）。",
-        );
-        L.push(
-          "  　変更・削除・インストール・送信の確認が出たら、許可せずに止めてください。」",
-        );
-        L.push(
-          "- 使ってよい操作は、次の4つだけ。これ以外の操作（ほかのAIへの作業の依頼や、つながっている外部サービス（MCP）の呼び出しを含む）は使わない",
-        );
-        L.push(
-          "  1. ファイル名の一覧と、ファイル名での検索。Claude Code では組み込みの検索機能（Glob）を使う",
-        );
-        L.push(
-          "  2. 中身の検索で、一致したファイル名だけを返すもの（grep -rl 相当）。Claude Code では組み込みの検索機能（Grep）を、ファイル名だけを返す形で使う。一致した行は表示しない（F2 だけは、一致した部分だけを出す grep -o 相当を使ってよい）",
-        );
-        L.push(
-          "  3. .gitignore と指示書（CLAUDE.md・AGENTS.md）を読むこと。Claude Code では組み込みの「ファイルを読む」機能（Read）を使う",
-        );
-        L.push(
-          "  4. 下の「調べてよいもの」に挙げた読み取りのコマンド（設定ファイルから挙げたキーだけを画面に出す処理、claude --version・codex --version、git status・git log、定期実行の一覧）。結果をファイルに書き出さない",
-        );
-        L.push(
-          "- ファイルの作成・編集・削除・移動、インストール、ネットワークに出る操作（Web の検索やページの取得を含む）、git の書き込み（commit・push など）、設定の変更は一切しない。確認なしで何でも実行できる状態で動いていても同じ",
-        );
-        L.push(
-          '- 上の4つの操作で調べられない項目は rating を "ask" にする。確認の画面で断られた操作は、別の方法で試し直さず、関係する項目を "ask" にして続ける',
-        );
-        L.push(
-          "- 本人の確認の手間を減らすため、シェルのコマンドは少ない回数にまとめる。設定ファイル（Claude Code と Codex）から挙げたキーだけを出す処理を1回のコマンドにまとめ、バージョン確認・git status・git log・定期実行の一覧をもう1回にまとめる。Claude Code では、一覧・検索・.gitignore と指示書の読み取りに、シェルのコマンドを使わない。ただし、ホームフォルダの .claude・.codex の中にあるファイルやフォルダの有無（.git・skills・CLAUDE.md・AGENTS.md など）は、Glob で別に調べず、1回目のシェルのコマンドの中で有無だけを出す（作業フォルダの外を読むたびに、確認の画面が増えるため）",
-        );
-        L.push(
-          "- シェルのコマンドを実行する直前と、作業フォルダの外（ホームフォルダの .claude・.codex など）を一覧・読み取りする直前に、何を読むのかを1行で本人に説明する（例：「設定ファイルから、許可の設定だけを取り出します。読み取りだけです」）。確認の画面で、本人が読み取りかどうかを判断できるようにするため",
-        );
-        L.push(
-          "- 同じ検索やコマンドを繰り返さない。シェルのコマンドは、実行の前に書き間違いがないかを見直し、やり直しを出さない（やり直すたびに本人の確認が増えるため）",
-        );
-        L.push(
-          "- 自分が確認なしでコマンドの実行やファイルの変更ができる状態で動いていると分かるときは、その事実を A1 の evidence に書く（分からなければ書かない）",
-        );
-        L.push(
-          "- この点検では、ファイルの変更を提案して承認を求めない。計画を立てて承認を求めることもしない（承認のあと、変更の作業に進んでしまうため）。読み取りのコマンドを実行するときの確認は出てかまわない。直し方は fix に書くだけにし、JSON を出したら止まる",
-        );
-        L.push(
-          "- APIキー・パスワード・トークンなどの値は、絶対に表示しない。存在と場所だけを書き、値は「***」にする",
-        );
-        L.push(
-          "- 秘密情報らしい値を見てしまったときも、その値を出力・要約・引用しない",
-        );
-        L.push(
-          "- .env や鍵ファイルの中身は開かない。ファイル名と場所だけを確かめる",
-        );
-        L.push(
-          '- 設定ファイル（JSON・TOML）は、ファイル全体を開いて読まない（組み込みの「ファイルを読む」機能（Read）でも開かない）。下の「調べてよいもの」に挙げたキーだけを、コマンドで取り出して読む。キーだけを取り出せないときは、そのファイルは読まずに関係する項目を "ask" にする',
-        );
-        L.push(
-          "- ~/.claude.json は mcpServers の名前と種類だけを見る。ほかの値は読まず、出力もしない",
-        );
-        L.push('- 迷ったら、調べずに rating を "ask" にする');
-        L.push(
-          '- 下の「調べてよいもの」に挙げていないファイル（シェルの履歴・ログなど）は、中身を出力・引用しない。中身を見ないと判定できないときは "ask" にする',
-        );
-        L.push(
-          '- 調べられない項目や、本人にしか分からない項目は rating を "ask" にし、本人に聞く質問を evidence に1文で書く',
-        );
-        L.push("");
-        L.push("## 調べてよいもの（存在するものだけ）");
-        L.push(
-          "- Claude Code の設定：~/.claude/settings.json、作業フォルダの .claude/settings.json と .claude/settings.local.json。読むのは次のキーだけ",
-        );
-        L.push(
-          "  - permissions の defaultMode・deny・ask・additionalDirectories・blockReadsOutsideWorkingDirectories",
-        );
-        L.push(
-          "  - permissions.allow は、許可ごとのツール名（Bash・WebFetch など）と、カッコの中が * だけか・* を含むかだけを取り出して数える（カッコのない許可も全許可として数える）。カッコの中のコマンドは読まない（トークンが入っていることがあるため）",
-        );
-        L.push(
-          "  - hooks は、イベント名（PreToolUse など）と matcher だけ。実行するコマンドは読まない",
-        );
-        L.push("  - enabledPlugins は、プラグインの名前だけ");
-        L.push("  - env など、ここに挙げていないキーは読まない");
-        L.push(
-          "- Claude Code の接続：.mcp.json と ~/.claude.json は、mcpServers の名前と種類（type）だけ。command・args・url・env・headers の値は読まない・引用しない",
-        );
-        L.push("- claude --version");
-        L.push(
-          "- Codex：~/.codex/config.toml は、sandbox_mode・approval_policy・writable_roots・projects の trust_level・mcp_servers と plugins の名前だけを読む。ほかのキー（command・args・env など）は読まない。codex --version",
-        );
-        L.push(
-          "- 作業フォルダ：ファイル名の一覧、.gitignore、git status、git log（下のとおりファイル名の検索だけ）、指示書（CLAUDE.md・AGENTS.md）",
-        );
-        L.push(
-          "- 指示書は、キーの直書きがあるか・AIのルールがあるかの判定にだけ使う。文面は evidence に引用しない",
-        );
-        L.push(
-          "- git log は、コミットの番号とファイル名だけを出す形で使う（例：git log --all --format=%h --name-only -- '*.env'）。差分（-p）とコミットの本文は表示しない。git show と git diff は使わない",
-        );
-        L.push(
-          "- 定期実行の一覧：Windows は schtasks /query /fo LIST（Microsoft 製以外。/v は付けない）、Mac は crontab -l と launchctl list、Linux は crontab -l",
-        );
-        L.push(
-          "- 定期実行は、タスク名・実行間隔・実行ファイル名だけを報告する。コマンドの引数（トークンや URL が入っていることがある）は表示・引用しない。crontab -l は全文を表示せず、実行間隔と実行ファイル名だけを取り出す（名前=値 の行は表示しない）。launchd の設定ファイル（plist）の中身は開かない",
-        );
-        L.push("");
+        const L = PROMPT_HEAD.slice();
         L.push("## 点検項目（ID／項目／調べ方／判定基準）");
         for (const x of ITEMS) {
           L.push("");
@@ -1588,16 +1815,7 @@
           L.push(`- red：${x.r}`);
         }
         L.push("");
-        L.push("## 出力形式");
-        L.push(
-          "全30項目を1つずつ含む JSON 配列だけを、```json で始まるコードブロックで出力する。",
-        );
-        L.push(
-          '[{"id":"A1","rating":"green|yellow|red|na|ask","evidence":"確かめた事実を1〜2文（秘密情報の値は含めない）","fix":"yellow か red のとき、直し方を1文。それ以外は空文字"}]',
-        );
-        L.push(
-          '4つのキー（id・rating・evidence・fix）は、全項目に必ず入れる。fix が不要な項目も、キーを省かずに "" にする。',
-        );
+        L.push(...PROMPT_TAIL);
         return L.join("\n");
       }
 
@@ -1608,7 +1826,7 @@
           h += `<section class="cat"><h2><span class="num">${c}</span>${esc(name)}<span class="cnt">${list.length}項目</span></h2>`;
           for (const x of list) {
             h += `<article class="item is-unset" id="item-${x.id}" data-id="${x.id}">
-<div class="ihead"><span class="iid">${x.id}</span>${x.crit ? '<span class="crit">★重要</span>' : ""}<span class="mode m-${x.mode}">${MODE[x.mode]}</span><span class="tag rlabel" data-rl></span></div>
+<div class="ihead"><span class="iid">${x.id}</span>${x.crit ? '<span class="crit">★重要</span>' : ""}<span class="mode m-${x.conf ? "both" : x.mode}">${MODE[x.conf ? "both" : x.mode]}</span><span class="tag rlabel" data-rl></span></div>
 <h3>${esc(x.title)}</h3>
 <p class="why">${esc(x.why)}</p>
 <details><summary>調べ方と判定基準</summary>
@@ -1685,15 +1903,18 @@
         // unset は判定が入っていない項目の総数。ask はそのうち聞き取り待ちの数
         const c = { green: 0, yellow: 0, red: 0, na: 0, unset: 0, ask: 0 };
         const critRed = [];
+        const confirmIds = []; // 判定は付いているが「本人への確認：」が残る項目
         ITEMS.forEach((x) => {
           const r = it(x.id).rating || "unset";
           c[r] = (c[r] || 0) + 1;
           if (r === "red" && x.crit) critRed.push(x.id);
           if (isAsk(x.id)) c.ask++;
+          if (hasConfirm(x.id)) confirmIds.push(x.id);
         });
         let verdict,
           cls,
           note = "";
+        // 決め方（ページの「総合判定の決め方」と同じ順）
         if (critRed.length) {
           verdict = "至急の整備が必要";
           cls = "v-red";
@@ -1710,11 +1931,24 @@
           cls = "v-green";
           note = "重要項目に赤なし";
         }
+        // 聞き取りが残る間は、判定は暫定
+        const prov = c.ask > 0 || confirmIds.length > 0;
         const rest = [];
         if (c.ask > 0) rest.push(`要聞き取り ${c.ask} 項目`);
         if (c.unset > c.ask) rest.push(`未確認 ${c.unset - c.ask} 項目`);
+        if (confirmIds.length > 0)
+          rest.push(`判定済みで本人への確認が残る ${confirmIds.length} 項目`);
         if (rest.length) note += (note ? "／" : "") + rest.join("／");
-        return { c, critRed, verdict, cls, note };
+        return {
+          c,
+          critRed,
+          confirmIds,
+          prov,
+          verdict,
+          label: verdict + (prov ? "（暫定）" : ""),
+          cls,
+          note,
+        };
       }
 
       function summary() {
@@ -1729,10 +1963,19 @@
             ([k, val]) =>
               `<span><b>${k}：</b>${esc(val || "（未記入）")}</span>`,
           )
-          .join("");
+          .join("") + `<span><b>点検票：</b>${esc(PAGE_VER)}</span>`;
+        // 印刷のとき、お客様名か点検者が空なら紙にも警告を出す
+        const blank = [];
+        if (!String(m.client || "").trim()) blank.push("お客様名");
+        if (!String(m.inspector || "").trim()) blank.push("点検者");
+        const pw = $("#print-warn");
+        pw.textContent = blank.length
+          ? `※ ${blank.join("と")}が未記入です。記入してから印刷してください。`
+          : "";
+        pw.className = "print-warn" + (blank.length ? " on" : "");
         const v = $("#verdict");
         v.className = "verdict " + s.cls;
-        v.innerHTML = `<div class="v">${esc(s.verdict)}</div><small>${esc(s.note)}</small>`;
+        v.innerHTML = `<div class="v">${esc(s.verdict)}${s.prov ? '<span class="prov">暫定</span>' : ""}</div><small>${esc(s.note)}</small>`;
         $("#counts").innerHTML = [
           ["cg", "緑", s.c.green],
           ["cy", "黄", s.c.yellow],
@@ -1744,17 +1987,34 @@
           .map(([k, l, n]) => `<div class="${k}"><b>${n}</b>${l}</div>`)
           .join("");
 
+        // 聞き取りが残っているときの一覧（★重要の要聞き取り・判定済みで本人への確認が残る項目）
+        const critAsk = ITEMS.filter((x) => x.crit && isAsk(x.id));
+        const conf = ITEMS.filter((x) => hasConfirm(x.id));
+        let ph = "";
+        if (s.prov) {
+          ph += `<div class="pending"><p><b>聞き取りが終わるまで、総合判定は「暫定」です。</b>要聞き取り ${s.c.ask} 項目${conf.length ? `、判定は付いているが本人への確認が残る ${conf.length} 項目` : ""}があります。聞き取りの答えで、判定が変わることがあります。</p>`;
+          if (critAsk.length)
+            ph += `<p class="pend-h">★重要の項目で、聞き取り待ち　${critAsk.length} 項目</p><ul class="todo">${critAsk.map((x) => `<li><span class="tag t-unset">要聞き取り</span><span class="crit">★重要</span> <a href="#item-${x.id}">${x.id}　${esc(x.title)}</a></li>`).join("")}</ul>`;
+          if (conf.length)
+            ph += `<p class="pend-h">判定は付いているが、本人への確認が残る項目　${conf.length} 項目</p><ul class="todo">${conf.map((x) => `<li><span class="tag ${{ green: "t-green", yellow: "t-yellow", red: "t-red", na: "t-na" }[it(x.id).rating]}">${RLABEL[it(x.id).rating]}</span>${x.crit ? '<span class="crit">★重要</span> ' : ""}<a href="#item-${x.id}">${x.id}　${esc(x.title)}</a><p class="ti-line"><b>本人への確認：</b>${esc(confirmText(x.id))}</p></li>`).join("")}</ul>`;
+          ph += "</div>";
+        }
+        $("#pending").innerHTML = ph;
+
         const t = fixTargets();
+        const held = fixHeld();
         const fixRow = (x) => {
           const o = it(x.id);
           const red = o.rating === "red";
           const urgent = red && x.crit;
-          return `<li><span class="tag ${red ? "t-red" : "t-yellow"}">${urgent ? "至急" : RLABEL[o.rating]}</span>${x.crit && !urgent ? '<span class="crit">★重要</span> ' : ""}<a href="#item-${x.id}">${x.id}　${esc(x.title)}</a>${o.evidence ? `<p class="ti-line"><b>確かめた事実：</b>${esc(plain(o.evidence))}</p>` : ""}<p class="ti-line"><b>直し方：</b>${esc(o.fix || x.fix)}</p></li>`;
+          const hold = hasConfirm(x.id);
+          return `<li><span class="tag ${red ? "t-red" : "t-yellow"}">${urgent ? "至急" : RLABEL[o.rating]}</span>${x.crit && !urgent ? '<span class="crit">★重要</span> ' : ""}<a href="#item-${x.id}">${x.id}　${esc(x.title)}</a>${o.evidence ? `<p class="ti-line"><b>確かめた事実：</b>${esc(plain(o.evidence))}</p>` : ""}<p class="ti-line"><b>直し方：</b>${esc(o.fix || x.fix)}</p>${hold ? '<p class="ti-line"><b>改修の対象：</b>本人への確認が済むまで、対象から外しています</p>' : ""}</li>`;
         };
         const block = (h, list, row) =>
           list.length
             ? `<h3 class="r-h">${h}　${list.length} 項目</h3><ul class="todo">${list.map(row).join("")}</ul>`
             : "";
+        const ry = redYellow();
         const asks = ITEMS.filter((x) => isAsk(x.id)).sort(
           (a, b) => b.crit - a.crit,
         );
@@ -1763,17 +2023,17 @@
         let h =
           block(
             "至急直す項目（★重要の赤）",
-            t.filter((x) => x.crit && it(x.id).rating === "red"),
+            ry.filter((x) => x.crit && it(x.id).rating === "red"),
             fixRow,
           ) +
           block(
             "整備する項目（赤）",
-            t.filter((x) => !x.crit && it(x.id).rating === "red"),
+            ry.filter((x) => !x.crit && it(x.id).rating === "red"),
             fixRow,
           ) +
           block(
             "改善をおすすめする項目（黄）",
-            t.filter((x) => it(x.id).rating === "yellow"),
+            ry.filter((x) => it(x.id).rating === "yellow"),
             fixRow,
           ) +
           block("聞き取りで確かめること", asks, askRow);
@@ -1782,21 +2042,34 @@
           h = `<p class="note noprint">まだ結果が入っていません。上の欄に必要事項を書き、JSON を入れて「レポートを作成」を押してください。</p>`;
         $("#todo").innerHTML = h;
 
+        const hn = heldNote();
         let lead;
         if (t.length)
-          lead = `赤と黄の ${t.length} 項目を、危険度の高い順に直す指示文を作ってコピーします。AIは変更の前に毎回内容を見せ、承認された項目だけを直します。`;
+          lead = `赤と黄の ${t.length} 項目を、危険度の高い順に直す指示文を作ってコピーします。AIは変更の前に毎回内容を見せ、承認された項目だけを直します。${hn}`;
         else if (!hasData)
           lead = "結果を入れると、赤と黄の項目を直す指示文を作れます。";
+        else if (held.length)
+          lead = `今は改修の対象になる項目がありません。${hn}`;
         else if (s.c.unset > 0)
           lead = `今は赤と黄の項目がありません。判定が入っていない ${s.c.unset} 項目を埋めると、赤や黄になった項目を指示文に入れられます。`;
         else lead = "赤と黄の項目はありません。直す項目はありません。";
         $("#fix-lead").textContent = lead;
+
+        // 改修ボタンの近くの注意書き
+        const fw = $("#fix-warn");
+        if (s.prov) {
+          fw.hidden = false;
+          fw.textContent = `今の総合判定は暫定です（要聞き取り ${s.c.ask} 項目${conf.length ? `・本人への確認が残る ${conf.length} 項目` : ""}）。聞き取りで判定が変わると、直す項目も変わります。できれば聞き取りが終わってから、改修用の指示文を作ってください。${hn ? hn + "確かめたら、その項目の「確かめた事実」から「本人への確認：」の部分を消すか、書き直してください。" : ""}`;
+        } else {
+          fw.hidden = true;
+          fw.textContent = "";
+        }
       }
 
       function exportObj() {
         const s = calc();
         return {
-          tool: "AI環境 点検票 第1.1版",
+          tool: "AI環境 点検票 " + PAGE_VER.replace(/（.*$/, ""),
           meta: state.meta,
           summary: {
             verdict: s.verdict,
@@ -1829,12 +2102,25 @@
           L = [];
         L.push("【AI環境 点検結果】");
         L.push(
-          `お客様：${m.client || "（未記入）"}／点検日：${m.date || "（未記入）"}／点検者：${m.inspector || "（未記入）"}`,
+          `お客様：${m.client || "（未記入）"}／点検日：${m.date || "（未記入）"}／点検者：${m.inspector || "（未記入）"}／点検票：${PAGE_VER}`,
         );
-        L.push(`総合判定：${s.verdict}${s.note ? "（" + s.note + "）" : ""}`);
+        L.push(`総合判定：${s.label}${s.note ? "（" + s.note + "）" : ""}`);
         L.push(
           `緑 ${s.c.green}／黄 ${s.c.yellow}／赤 ${s.c.red}／該当なし ${s.c.na}／要聞き取り ${s.c.ask}／未確認 ${s.c.unset - s.c.ask}`,
         );
+        if (s.prov)
+          L.push(
+            "※ 聞き取りが終わっていないため、総合判定は暫定です。聞き取りの答えで判定が変わることがあります。",
+          );
+        const critAsk = ITEMS.filter((x) => x.crit && isAsk(x.id));
+        if (critAsk.length)
+          L.push(
+            `★重要で聞き取り待ち：${critAsk.map((x) => x.id).join("・")}`,
+          );
+        if (s.confirmIds.length)
+          L.push(
+            `判定済みで本人への確認が残る：${s.confirmIds.length} 項目（${s.confirmIds.join("・")}）`,
+          );
         const groups = [
           [
             "■ 至急（重要項目の赤）",
@@ -1843,6 +2129,10 @@
           ["■ 整備が必要（赤）", (x) => !x.crit && it(x.id).rating === "red"],
           ["■ 改善をおすすめ（黄）", (x) => it(x.id).rating === "yellow"],
           ["■ 聞き取りで確かめること", (x) => isAsk(x.id)],
+          [
+            "■ 判定は付いているが、本人への確認が残る",
+            (x) => hasConfirm(x.id),
+          ],
           ["■ 未確認", (x) => !it(x.id).rating && !isAsk(x.id)],
         ];
         for (const [h, f] of groups) {
@@ -1853,6 +2143,12 @@
           for (const x of xs) {
             const o = it(x.id);
             L.push(`・${x.id} ${x.title}`);
+            if (h.indexOf("本人への確認が残る") >= 0) {
+              L.push(
+                `　判定：${RLABEL[o.rating]}／本人への確認：${confirmText(x.id)}`,
+              );
+              continue;
+            }
             if (o.evidence)
               L.push(
                 `　${isAsk(x.id) ? "確かめること" : "事実"}：${plain(o.evidence)}`,
@@ -1866,23 +2162,32 @@
 
       // 改修用の指示文。点検用（buildPrompt）と違い、お客様の環境を変更する指示なので、
       // 1項目ずつの承認・控えのコピー・AIにさせないことの一覧を、必ず先に書く。
+      // 分担は項目の種類ではなく作業ごと（FIX_STEPS = AI、HUMAN_STEPS = 本人）。
+      // 「本人への確認：」が残る項目は fixTargets() が外すので、ここには入らない。
       function buildFixPrompt() {
         const s = calc();
         const t = fixTargets();
-        const ai = t.filter((x) => x.mode !== "ask");
-        const human = t.filter((x) => x.mode === "ask");
+        const held = fixHeld();
+        const ai = t.filter((x) => FIX_STEPS[x.id]);
+        const human = t.filter((x) => HUMAN_STEPS[x.id] || !FIX_STEPS[x.id]);
         const day = state.meta.date || todayStr();
         const label = (x) => {
           const r = it(x.id).rating;
           return r === "red" && x.crit ? "赤（至急）" : RLABEL[r];
         };
-        const detail = (L, x) => {
+        const detail = (L, x, withAi) => {
           const o = it(x.id);
           L.push(`- 判定：${label(x)}`);
           if (o.evidence) L.push(`- 点検の記録：${plain(o.evidence)}`);
           L.push(`- 目指す状態：${x.g}`);
           L.push(`- 直し方：${plain(o.fix || x.fix)}`);
-          if (FIX_STEPS[x.id]) L.push(`- AIがすること：${FIX_STEPS[x.id]}`);
+          if (withAi) {
+            L.push(`- AIがすること：${FIX_STEPS[x.id]}`);
+            if (HUMAN_STEPS[x.id])
+              L.push(
+                "- 本人が行う作業：あとで「本人が行う作業」の節にまとめて渡す（AIは行わない）",
+              );
+          }
         };
         const L = [];
         L.push("# AI環境の改修（点検結果にもとづく）");
@@ -1892,12 +2197,20 @@
         );
         L.push("");
         L.push(
-          `点検日：${day}／総合判定：${s.verdict}／AIが直す項目：${ai.length} 件／本人が行う項目：${human.length} 件`,
+          `点検日：${day}／総合判定：${s.label}／AIが直す項目：${ai.length} 件／本人が行う作業のある項目：${human.length} 件`,
         );
+        if (s.prov)
+          L.push(
+            "総合判定が暫定なのは、点検の聞き取りが終わっていないためです。判定が変わると直す項目も変わります。",
+          );
+        if (held.length)
+          L.push(
+            `判定は付いていますが「本人への確認：」が残るため、今回の対象から外した項目：${held.length} 件（${held.map((x) => x.id).join("・")}）。これらには触れません。`,
+          );
         L.push("");
         L.push("## 最初に表示する案内");
         L.push(
-          "作業を始める前に、次の3行をそのまま本人に表示する。続けて、直す項目の一覧を短く見せる（「本人が行う項目」に至急のものがあれば、ここで先に伝える）。返事は待たずに、1項目めの確認に進む。",
+          "作業を始める前に、次の3行をそのまま本人に表示する。続けて、直す項目の一覧を短く見せる（「本人が行う作業」に至急のものがあれば、ここで先に伝える）。返事は待たずに、1項目めの確認に進む。",
         );
         L.push(
           "「点検結果をもとに、AI環境を1項目ずつ直します。変更の前に毎回、変える場所と内容をお見せします。",
@@ -1921,10 +2234,10 @@
           "4. 本人の返事を待つ。「はい」と答えたときだけ変更する。「飛ばして」なら変更せず、次の項目へ進む。質問には答えてから、もう一度確認する",
         );
         L.push(
-          "5. 変更のあと、ファイルが正しい形式（JSON・TOML）のままで、狙いどおりに変わったことを読み直して確かめ、結果を1行で報告する",
+          "5. 変更のあと、ファイルが正しい形式（JSON・TOML）のままで、狙いどおりに変わったことを、変えたキーの行だけ読み直して確かめ、結果を1行で報告する",
         );
         L.push(
-          "ファイルの変更がない項目（本人の作業や習慣の項目）は、2〜4を省く。確認は取らず、手順や案内を渡して次の項目へ進む。",
+          "「本人が行う作業」は、AIは行わない。確認は取らず、手順を渡して次の項目へ進む（2〜4を省く）。",
         );
         L.push("");
         L.push("## 必ず守ること");
@@ -1938,7 +2251,22 @@
           "- 読み取り専用のモードや計画モードで変更できないときは、1項目めの変更案を見せたうえで、通常のモードで開き直すよう本人に伝えて止まる",
         );
         L.push(
-          `- 設定ファイルを変える前に、同じフォルダへ控えをコピーする（例：settings.json.bak-${todayStr().replace(/-/g, "")}）。同じファイルを続けて変えるときは、最初の1回でよい。控えの場所を本人に伝える。控えはコミットしない`,
+          "- 項目の種類ではなく、作業ごとに分ける。「AIがすること」だけをAIが行い、「本人が行う作業」は手順を渡すだけにする。キーの再発行、起動するフォルダの習慣、外部への push、秘密情報のファイルの移動、画面でつないだコネクタの確認は、必ず本人の作業",
+        );
+        L.push(
+          "- アプリのコード（お客様に納めるアプリや、業務用のアプリのソース）は変えない。直すのは、AIの設定・指示書・自動処理の設定だけ",
+        );
+        L.push(
+          "- 設定ファイルを変える前に、そのファイルの控えを、作業フォルダと Git の管理下の外へコピーする。置き場所は、Windows は $env:USERPROFILE\\ai-env-backup\\<日付>\\、Mac・Linux・WSL は ~/ai-env-backup/<日付>/（フォルダがなければ作る）。ホームのフォルダが Git の管理下にあるときは、別の場所を本人と決める。ファイル名は、元の場所が分かる名前にする（例：claude-settings.json.bak）。控えの中身は表示せず、コミットしない。同じファイルを続けて変えるときは、最初の1回でよい。控えの場所を本人に伝える",
+        );
+        L.push(
+          '- 控えのコマンドの例（Windows は PowerShell）：Copy-Item -LiteralPath "$env:USERPROFILE\\.claude\\settings.json" -Destination "$env:USERPROFILE\\ai-env-backup\\<日付>\\claude-settings.json.bak"。コマンドの例は、本人の OS に合わせる',
+        );
+        L.push(
+          "- 設定ファイル（JSON・TOML）は、ファイル全体を開いて読まない（組み込みの「ファイルを読む」機能でも開かない）。変える項目のキーだけを、コマンド（Windows は PowerShell の Select-String、Mac・Linux・WSL は grep -n など）で行ごとに取り出して読み、書き換えも、そのキーの行だけを置き換える。ほかのキー（env・hooks のコマンド・mcpServers の値など）は読まず、表示せず、変えない。JSON を丸ごと読み込んで書き戻す方法は、ほかのキーの並びや書式まで変わるので使わない",
+        );
+        L.push(
+          "- キーだけを取り出せないとき、または書き換えにファイル全体を読む必要があるときは、その項目を飛ばし、本人に手順を渡す",
         );
         L.push(
           "- うまくいかないときは、別の方法を試し続けない。控えから元に戻し、本人に伝えて、その項目を飛ばす",
@@ -1953,7 +2281,7 @@
           "- APIキー・パスワード・トークンなどの値は、絶対に表示・引用・要約しない。変更の前後を見せるときも、値は「***」にする",
         );
         L.push(
-          "- .env や鍵ファイルの中身は開かない。ファイル名と場所だけを扱う",
+          "- .env や鍵ファイルの中身は開かない。ファイル名と場所だけを扱う。.env は秘密情報のファイルなので、秘密情報でない設定（モデル名など）の置き場所として勧めない",
         );
         L.push(
           "- ~/.claude.json は編集しない。接続を外すときは、claude mcp remove などの公式のコマンドを本人に案内する",
@@ -1961,7 +2289,7 @@
         L.push(
           "- 次のことは、AIが行わない。必要なときは、本人が行う手順を書いて渡し、次の項目へ進む",
         );
-        L.push("  - ファイルやフォルダの削除と移動");
+        L.push("  - ファイルやフォルダの削除と移動（上の控えのコピーは除く）");
         L.push(
           "  - git の commit・push、履歴の書き換え（filter-branch・rebase・強制 push など）",
         );
@@ -1979,19 +2307,23 @@
           ai.forEach((x, i) => {
             L.push("");
             L.push(`### ${i + 1}. ${x.id} ${x.title}`);
-            detail(L, x);
+            detail(L, x, true);
           });
         }
         if (human.length) {
           L.push("");
-          L.push("## 本人が行う項目（AIは変更しない）");
+          L.push("## 本人が行う作業（AIは行わない）");
           L.push(
-            `${ai.length ? "AIが直す項目が終わったら、" : ""}次の項目について、本人が行う手順を短いチェックリストにして会話の中に書く。ファイルは作らない。`,
+            `${ai.length ? "AIが直す項目が終わったら、" : ""}次の作業について、本人が行う手順を短いチェックリストにして会話の中に書く。ファイルは作らない。`,
           );
           human.forEach((x) => {
             L.push("");
             L.push(`### ${x.id} ${x.title}`);
-            detail(L, x);
+            if (FIX_STEPS[x.id]) L.push(`- 判定：${label(x)}`);
+            else detail(L, x, false);
+            L.push(
+              `- 本人が行うこと：${HUMAN_STEPS[x.id] || plain(it(x.id).fix || x.fix)}`,
+            );
           });
         }
         L.push("");
@@ -2004,6 +2336,10 @@
         L.push(
           "- 直ったかどうかは、点検用の指示文をもう一度実行し、出てきた JSON を点検票に入れ直すと確かめられること",
         );
+        if (held.length)
+          L.push(
+            `- 「本人への確認：」が残っていたため対象から外した項目が ${held.length} 件（${held.map((x) => x.id).join("・")}）あり、今回は触っていないこと。本人への確認が済んで判定が確定したら、点検票で改修用の指示文を作り直すこと`,
+          );
         const open = ITEMS.filter((x) => !it(x.id).rating).map((x) => x.id);
         if (open.length)
           L.push(
@@ -2138,6 +2474,9 @@
           msg((fileName ? fileName + "：" : "") + e.message, true);
           return;
         }
+        // 取り込みをやめたときに戻せるよう、今の必要事項を控えておく
+        const prevMeta = { ...state.meta };
+        const prevClient = String(prevMeta.client || "").trim();
         // 必要事項は入力欄を優先し、空欄だけファイルの内容で埋める
         const notes = [];
         if (p && p.meta) {
@@ -2175,14 +2514,26 @@
         const dirty = Object.values(state.items).some(
           (o) => o.rating || o.evidence || o.fix,
         );
-        if (
-          dirty &&
-          !confirm(
-            "入力済みの判定と記録を、今回の結果で置き換えます。よろしいですか？",
-          )
-        ) {
-          msg("置き換えをやめました。入力済みの内容はそのままです。");
-          return;
+        if (dirty) {
+          // 前のお客様の結果が残っているときは、今の欄のお客様名を見せて、取り違えを防ぐ
+          const nameLine = prevClient
+            ? `今の欄のお客様名：「${prevClient}」\nこの名前のレポートとして、新しい結果を入れます。前のお客様の名前のままなら、「キャンセル」を押して、お客様名を直してください。`
+            : `今の欄のお客様名：（空）\nファイルのお客様名「${state.meta.client}」を入れます。違うお客様なら、「キャンセル」を押して、お客様名を入力してください。`;
+          if (
+            !confirm(
+              `入力済みの判定と記録を、今回の結果で置き換えます。\n\n${nameLine}\n\nよろしいですか？`,
+            )
+          ) {
+            // 取り込みをやめるので、ファイルから入れた必要事項も元に戻す
+            state.meta = prevMeta;
+            save();
+            $("#m-client").value = state.meta.client || "";
+            $("#m-date").value = state.meta.date || "";
+            $("#m-inspector").value = state.meta.inspector || "";
+            summary();
+            msg("置き換えをやめました。入力済みの内容はそのままです。");
+            return;
+          }
         }
         if (!state.meta.date) state.meta.date = todayStr();
         // fillAll が空の項目を state.items に足すので、件数は代入の前に数える
@@ -2205,7 +2556,7 @@
             `秘密情報らしい文字列を ${p.masked} 件「***」に置き換えました`,
           );
         msg(
-          `${n} 項目をレポートに反映しました（緑 ${s.c.green}・黄 ${s.c.yellow}・赤 ${s.c.red}・該当なし ${s.c.na}・要聞き取り ${s.c.ask}）。${notes.length ? notes.join("。") + "。" : ""}`,
+          `お客様名「${state.meta.client}」のレポートに、${n} 項目を反映しました（緑 ${s.c.green}・黄 ${s.c.yellow}・赤 ${s.c.red}・該当なし ${s.c.na}・要聞き取り ${s.c.ask}）。${notes.length ? notes.join("。") + "。" : ""}`,
         );
         const rp = $("#report");
         rp.scrollIntoView();
@@ -2297,9 +2648,11 @@
           $("#fix-next").hidden = false;
           const ok = await copyToClipboard(text);
           const st = $("#fix-status");
-          st.textContent = ok
-            ? `クリップボードに改修用の指示文をコピーしました（${t.length} 項目）。`
-            : "自動でコピーできませんでした。下の文面を選択してコピーしてください。";
+          st.textContent =
+            (ok
+              ? `クリップボードに改修用の指示文をコピーしました（${t.length} 項目）。`
+              : "自動でコピーできませんでした。下の文面を選択してコピーしてください。") +
+            (heldNote() ? heldNote() : "");
           st.className = "fix-ok" + (ok ? "" : " err");
           toast(
             ok
@@ -2335,7 +2688,32 @@
           }, 500);
           msg("JSON を保存しました", false, "#rmsg");
         });
-        $("#b-print").addEventListener("click", () => window.print());
+        $("#b-print").addEventListener("click", () => {
+          // お客様名・点検者が空のまま印刷しないよう、先に警告する
+          const blank = [
+            ["#m-client", "client", "お客様名"],
+            ["#m-inspector", "inspector", "点検者"],
+          ].filter(([, k]) => !String(state.meta[k] || "").trim());
+          if (blank.length) {
+            blank.forEach(([sel]) => $(sel).classList.add("invalid"));
+            const names = blank.map(([, , n]) => n).join("と");
+            if (
+              !confirm(
+                `${names}が空です。このまま印刷すると、印刷物に「（未記入）」と出ます。\n\n印刷する前に、入力欄に戻って記入しますか？\n「OK」＝入力欄に戻る／「キャンセル」＝このまま印刷する`,
+              )
+            ) {
+              window.print();
+              return;
+            }
+            const el = $(blank[0][0]);
+            el.scrollIntoView({ block: "center" });
+            el.focus();
+            msg(`${names}を入力してから、もう一度印刷してください`, true, "#rmsg");
+            return;
+          }
+          window.print();
+        });
+        window.addEventListener("beforeprint", summary);
         $("#b-clear").addEventListener("click", () => {
           if (!confirm("入力した判定と記録をすべて消します。よろしいですか？"))
             return;
